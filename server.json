@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.frod27/overwing",
+  "title": "Overwing",
+  "description": "Guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence in under 500 ms.",
+  "repository": {
+    "url": "https://github.com/frod27/overwing-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://overwing.ai",
+  "version": "0.3.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "overwing-mcp",
+      "version": "0.3.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "OVERWING_API_KEY",
+          "description": "Overwing API key (ow_live_...). Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "OVERWING_BASE_URL",
+          "description": "Override the API base URL for self-hosted deployments (default https://overwing.ai)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

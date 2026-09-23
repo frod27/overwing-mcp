@@ -1,0 +1,58 @@
+{
+  "name": "overwing-mcp",
+  "version": "0.3.0",
+  "description": "Overwing MCP server: guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence, from any MCP-capable agent.",
+  "license": "MIT",
+  "type": "module",
+  "mcpName": "io.github.frod27/overwing",
+  "homepage": "https://overwing.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frod27/overwing-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/frod27/overwing-mcp/issues"
+  },
+  "author": "Overwing <support@overwing.ai> (https://overwing.ai)",
+  "bin": {
+    "overwing-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "assets"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "overwing",
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "llm",
+    "guardrails",
+    "ai-safety",
+    "content-moderation",
+    "pii-detection",
+    "toxicity",
+    "agents",
+    "claude",
+    "cursor",
+    "openai"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  }
+}

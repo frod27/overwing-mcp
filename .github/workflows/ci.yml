@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Server starts and lists tools
+        run: |
+          node -e '
+          const { spawn } = require("child_process");
+          const p = spawn("node", ["dist/index.js"], { env: { ...process.env, OVERWING_API_KEY: "ow_live_test" } });
+          let out = "";
+          p.stdout.on("data", (d) => (out += d));
+          p.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "ci", version: "0" } } }) + "\n");
+          setTimeout(() => {
+            p.stdin.write(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }) + "\n");
+            p.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" }) + "\n");
+          }, 300);
+          setTimeout(() => {
+            p.kill();
+            const ok = out.includes("\"evaluate\"") && out.includes("\"evaluate_batch\"");
+            console.log(ok ? "tools listed" : out);
+            process.exit(ok ? 0 : 1);
+          }, 1500);'
