@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "ai.overwing/mcp",
   "title": "Overwing",
-  "description": "Guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence in under 500 ms.",
+  "description": "Guardrails for LLM output: pass / fail / review verdicts with calibrated confidence in under 500 ms.",
   "repository": {
     "url": "https://github.com/frod27/overwing-mcp",
     "source": "github"
@@ -15,7 +15,9 @@
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "overwing-mcp",
       "version": "0.3.0",
-      "transport": { "type": "stdio" },
+      "transport": {
+        "type": "stdio"
+      },
       "environmentVariables": [
         {
           "name": "OVERWING_API_KEY",
