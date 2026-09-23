@@ -4,7 +4,7 @@
   "description": "Overwing MCP server: guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence, from any MCP-capable agent.",
   "license": "MIT",
   "type": "module",
-  "mcpName": "io.github.frod27/overwing",
+  "mcpName": "ai.overwing/mcp",
   "homepage": "https://overwing.ai",
   "repository": {
     "type": "git",

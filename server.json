@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.frod27/overwing",
+  "name": "ai.overwing/mcp",
   "title": "Overwing",
   "description": "Guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence in under 500 ms.",
   "repository": {
