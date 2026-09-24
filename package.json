@@ -1,6 +1,6 @@
 {
   "name": "overwing-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Overwing MCP server: guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence, from any MCP-capable agent.",
   "license": "MIT",
   "type": "module",

@@ -62,8 +62,8 @@ Set `OVERWING_BASE_URL` to point at a self-hosted deployment. Requires Node 20+.
 
 | Tool | What it does |
 | --- | --- |
-| `evaluate` | Score one text against a rule set. Returns the verdict, aggregate score, confidence, latency, and per-rule results. |
-| `evaluate_batch` | Score up to 50 texts in one call, with a summary and per-item verdicts. |
+| `evaluate` | Score one text against a rule set. Returns the verdict, a `recommended_action` (block, redact, review, or allow), aggregate score, confidence, latency, and per-rule results with each rule's action. Takes an optional `context` object (recipient, channel, ownership) that context-aware rule sets such as `outbound-message` read. |
+| `evaluate_batch` | Score up to 50 texts in one call, with a summary and per-item verdicts and recommended actions. |
 | `list_rule_sets` · `get_rule_set` · `create_rule_set` | Browse the prebuilt set or define your own rules: yes/no questions, classifications, or scored scales. |
 | `get_evaluation` · `list_evaluations` | Read stored results, filter by verdict or rule set, page with a cursor. |
 | `get_usage` · `whoami` · `list_plans` | Today's quota, the org behind the key, and the public plan catalog. |
@@ -94,6 +94,8 @@ Each rule has a fail condition, an optional review threshold, and a weight.
 - **fail**: a rule's fail condition matched. Block it, redact it, or regenerate.
 - **review**: nothing failed, but a rule's confidence was below its threshold. Route to a person or a slower model.
 - **pass**: everything else.
+
+Every rule also carries an **action** (`block`, `redact`, or `review`), and the response rolls them up into one `recommended_action`: `block` beats `redact` beats `review` beats `allow`. Branch on that field. Pass a `context` object (recipient, channel, `owns_contact_info`) with the `outbound-message` rule set and its rules read it, so a customer's own phone number in a reply to that customer is not flagged.
 
 `aggregate_score` is 0 to 1 (pass = 1, review = 0.5, fail = 0 per rule, weighted). `confidence` is the minimum across rules.
 
