@@ -66,6 +66,8 @@ Set `OVERWING_BASE_URL` to point at a self-hosted deployment. Requires Node 20+.
 | `evaluate_batch` | Score up to 50 texts in one call, with a summary and per-item verdicts and recommended actions. |
 | `list_rule_sets` · `get_rule_set` · `create_rule_set` | Browse the prebuilt set or define your own rules: yes/no questions, classifications, or scored scales. |
 | `get_evaluation` · `list_evaluations` | Read stored results, filter by verdict or rule set, page with a cursor. |
+| `atlas_lookup` | Overwing Atlas: say what a User-Agent string claims to be and whether the claim can be trusted (Web Bot Auth, spoofable string, or unattributable). 100 free a day. |
+| `atlas_agents` · `atlas_summary` | Search the registry of 241 AI crawlers, fetchers and browser agents; get traffic shares, sector field-scan headlines, and the agent-spending summary. |
 | `get_usage` · `whoami` · `list_plans` | Today's quota, the org behind the key, and the public plan catalog. |
 
 The `overwing://guide` resource returns the full plain-text API guide.

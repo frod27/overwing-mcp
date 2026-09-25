@@ -48,7 +48,7 @@ function reply(result: ApiResult, summarize?: (body: unknown) => string): { cont
   return { content: [{ type: "text", text }], structuredContent: structured };
 }
 
-const server = new McpServer({ name: "overwing", version: "0.4.0" });
+const server = new McpServer({ name: "overwing", version: "0.5.0" });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -180,6 +180,66 @@ server.registerTool(
   "list_plans",
   { title: "List plans", description: "Public plan catalog: prices, daily limits, and per-minute burst limits. No API key needed.", inputSchema: {} },
   async () => reply(await api("GET", "/api/v1/plans", undefined, false)),
+);
+
+server.registerTool(
+  "atlas_lookup",
+  {
+    title: "Identify a user agent (Overwing Atlas)",
+    description:
+      "Say what a User-Agent string claims to be and whether the claim can be trusted, from the Overwing Atlas registry of 241 AI crawlers, fetchers and browser agents. Returns the claimed agent, operator, purpose class, verification method (Web Bot Auth signature, user-agent string only, or unattributable) and a trust note. Metered per day by Atlas tier: free 100, Pro 10,000, Team 100,000. Use it when deciding whether to serve, block, or pay-gate a request, or to understand who is hitting a site.",
+    inputSchema: { user_agent: z.string().min(1).max(2000).describe("The User-Agent header value to identify") },
+  },
+  async ({ user_agent }) =>
+    reply(await api("GET", `/api/v1/atlas/lookup?user_agent=${encodeURIComponent(user_agent)}`), (b) => {
+      const r = b as { identified: boolean; claims: { agent: string; operator: string | null; purpose_class: string | null; verification: string | null } | null; trust_note: string; matches: unknown[] };
+      if (!r.identified || !r.claims) return `Not identified. ${r.trust_note}`;
+      return `Claims: ${r.claims.agent} (${r.claims.operator ?? "unknown operator"}) · ${r.claims.purpose_class ?? "unclassified"} · verification: ${r.claims.verification ?? "unknown"}\n${r.trust_note}${r.matches.length > 1 ? `\n${r.matches.length - 1} other match(es); see the JSON.` : ""}`;
+    }),
+);
+
+server.registerTool(
+  "atlas_agents",
+  {
+    title: "Search the agent registry (Overwing Atlas)",
+    description: "Browse or search Overwing Atlas, the registry of AI crawlers, fetchers and browser agents: name, operator, user-agent tokens, Web Bot Auth key directory, robots.txt behaviour, and (with Atlas Pro or Team) purpose class, verification, evasion flags and traffic shares. Filter by free text, purpose (training, search, browser, coding), operator, or verification.",
+    inputSchema: {
+      q: z.string().max(200).optional().describe("Free text over name, operator, user agents, description"),
+      purpose: z.string().max(60).optional().describe("Purpose substring, e.g. training, search, browser, fetcher, coding"),
+      operator: z.string().max(100).optional(),
+      verification: z.string().max(60).optional().describe("e.g. 'Web Bot Auth', 'spoofable', 'Unattributable'"),
+      limit: z.number().int().min(1).max(100).default(20),
+    },
+  },
+  async ({ q, purpose, operator, verification, limit }) => {
+    const qs = new URLSearchParams();
+    if (q) qs.set("q", q);
+    if (purpose) qs.set("purpose", purpose);
+    if (operator) qs.set("operator", operator);
+    if (verification) qs.set("verification", verification);
+    qs.set("limit", String(limit));
+    return reply(await api("GET", `/api/v1/atlas/agents?${qs.toString()}`), (b) => {
+      const r = b as { total: number; fields: string; agents: Array<{ slug: string; agent: string; operator: string | null; purpose_class?: string | null; verification?: string | null; user_agent_tokens: string[] }> };
+      const lines = r.agents.map((a) => `  ${a.agent} — ${a.operator ?? "?"}${a.purpose_class ? ` · ${a.purpose_class}` : ""}${a.verification ? ` · ${a.verification}` : ""}${a.user_agent_tokens.length ? ` · tokens: ${a.user_agent_tokens.slice(0, 3).join(", ")}` : ""}`);
+      return `${r.total} agents match (${r.fields} fields)\n${lines.join("\n")}`;
+    });
+  },
+);
+
+server.registerTool(
+  "atlas_summary",
+  {
+    title: "Agent traffic and spending summary (Overwing Atlas)",
+    description: "Public numbers from Overwing Atlas: registry counts by purpose and verification, published browser-agent traffic shares, sector field-scan headlines (e.g. how many OSINT sites carry AI-crawler rules or any agent-payable surface), and the summary of the Agent Consumers report on what agents actually spend. No key needed.",
+    inputSchema: {},
+  },
+  async () =>
+    reply(await api("GET", "/api/v1/atlas/summary", undefined, false), (b) => {
+      const r = b as { registry: { count: number; operators: number; purpose_classes: Record<string, number>; verification: Record<string, number> }; traffic_shares: Array<{ agent: string; value: number | string; period: string }>; sector_scans: Array<{ sector: string; date: string; headline_findings: Array<{ finding: string }> }>; report_summary: string | null };
+      const shares = r.traffic_shares.slice(0, 6).map((t) => `  ${t.agent}: ${typeof t.value === "number" ? `${Math.round(t.value * 1000) / 10}%` : t.value} (${t.period})`).join("\n");
+      const scans = r.sector_scans.map((s) => `  ${s.sector} (${s.date}):\n` + s.headline_findings.slice(0, 3).map((f) => `    - ${f.finding}`).join("\n")).join("\n");
+      return `Registry: ${r.registry.count} agents, ${r.registry.operators} operators\n  purpose: ${JSON.stringify(r.registry.purpose_classes)}\n  verification: ${JSON.stringify(r.registry.verification)}\nBrowser-agent traffic share:\n${shares}\nField scans:\n${scans}\n\n${(r.report_summary ?? "").slice(0, 1500)}`;
+    }),
 );
 
 server.registerResource(
