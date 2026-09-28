@@ -8,21 +8,28 @@
     "source": "github"
   },
   "websiteUrl": "https://overwing.ai",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "overwing-mcp",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "OVERWING_API_KEY",
-          "description": "Overwing API key (ow_live_...). Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
-          "isRequired": true,
+          "description": "Overwing organization key (ow_live_...). Needed for guardrails and Tower setup; Atlas lookups work without it. Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "OVERWING_AGENT_KEY",
+          "description": "Optional Overwing Tower agent key (ow_agent_...). Without it, the tower_create_agent tool mints one for the session",
+          "isRequired": false,
           "isSecret": true,
           "format": "string"
         },

@@ -3,8 +3,10 @@
  * Overwing MCP server. Exposes the Overwing guardrails API as tools so any
  * MCP-capable agent can score text, manage rule sets, and read usage.
  *
- *   OVERWING_API_KEY   required   ow_live_...
- *   OVERWING_BASE_URL  optional   defaults to https://overwing.ai
+ *   OVERWING_API_KEY    organization key, ow_live_...  (guardrails, Atlas, Tower setup)
+ *   OVERWING_AGENT_KEY  optional agent key, ow_agent_... (Tower operations). Without it,
+ *                       tower_create_agent mints one and this process keeps it in memory.
+ *   OVERWING_BASE_URL   optional, defaults to https://overwing.ai
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -12,15 +14,45 @@ import { z } from "zod";
 
 const BASE_URL = (process.env.OVERWING_BASE_URL ?? "https://overwing.ai").replace(/\/$/, "");
 const API_KEY = process.env.OVERWING_API_KEY;
+/** Tower agent key: from the environment, or minted by tower_create_agent and held for this process only. */
+let agentKey: string | undefined = process.env.OVERWING_AGENT_KEY;
 
-type ApiResult = { ok: true; status: number; body: unknown } | { ok: false; status: number; error: string };
+type ApiResult = { ok: true; status: number; body: unknown } | { ok: false; status: number; error: string; body?: unknown };
 
-async function api(method: string, path: string, body?: unknown, auth = true): Promise<ApiResult> {
-  if (auth && !API_KEY) {
-    return { ok: false, status: 0, error: "OVERWING_API_KEY is not set. Get a key at " + BASE_URL + "/login or POST " + BASE_URL + "/api/v1/signup." };
+/**
+ * Which credential a call carries.
+ *   true / "org"  the organization key, required
+ *   "optional"    the organization key when set, otherwise none (keyless allowances)
+ *   "agent"       the Tower agent key, required
+ *   false         none
+ */
+type Auth = boolean | "org" | "optional" | "agent";
+
+function describeError(parsed: unknown, fallback: string): string {
+  if (typeof parsed !== "object" || parsed === null || !("error" in parsed)) return fallback;
+  const e = (parsed as { error: unknown }).error;
+  if (typeof e === "object" && e !== null) {
+    const t = e as { code?: unknown; field?: unknown; message?: unknown; suggested_fix?: unknown };
+    return `${String(t.code ?? "error")}${t.field ? ` (${String(t.field)})` : ""}: ${String(t.message ?? "")}${t.suggested_fix ? ` Fix: ${String(t.suggested_fix)}` : ""}`;
   }
+  return String(e);
+}
+
+async function api(method: string, path: string, body?: unknown, auth: Auth = true): Promise<ApiResult> {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (auth && API_KEY) headers.Authorization = `Bearer ${API_KEY}`;
+  if (auth === "agent") {
+    if (!agentKey) {
+      return { ok: false, status: 0, error: "No Tower agent key. Set OVERWING_AGENT_KEY, or call tower_create_agent (needs OVERWING_API_KEY) to mint one for this session." };
+    }
+    headers.Authorization = `Bearer ${agentKey}`;
+  } else if (auth === true || auth === "org") {
+    if (!API_KEY) {
+      return { ok: false, status: 0, error: "OVERWING_API_KEY is not set. Get a key at " + BASE_URL + "/login or POST " + BASE_URL + "/api/v1/signup." };
+    }
+    headers.Authorization = `Bearer ${API_KEY}`;
+  } else if (auth === "optional" && API_KEY) {
+    headers.Authorization = `Bearer ${API_KEY}`;
+  }
   if (body !== undefined) headers["Content-Type"] = "application/json";
   let res: Response;
   try {
@@ -32,9 +64,9 @@ async function api(method: string, path: string, body?: unknown, auth = true): P
   let parsed: unknown = text;
   try { parsed = JSON.parse(text); } catch { /* keep text */ }
   if (!res.ok) {
-    const msg = typeof parsed === "object" && parsed !== null && "error" in parsed ? String((parsed as { error: unknown }).error) : text.slice(0, 300);
+    const msg = describeError(parsed, text.slice(0, 300));
     const retry = res.headers.get("retry-after");
-    return { ok: false, status: res.status, error: `${res.status}: ${msg}${retry ? ` (retry after ${retry}s)` : ""}` };
+    return { ok: false, status: res.status, error: `${res.status}: ${msg}${retry ? ` (retry after ${retry}s)` : ""}`, body: parsed };
   }
   return { ok: true, status: res.status, body: parsed };
 }
@@ -48,7 +80,7 @@ function reply(result: ApiResult, summarize?: (body: unknown) => string): { cont
   return { content: [{ type: "text", text }], structuredContent: structured };
 }
 
-const server = new McpServer({ name: "overwing", version: "0.5.0" });
+const server = new McpServer({ name: "overwing", version: "0.6.0" });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -187,14 +219,15 @@ server.registerTool(
   {
     title: "Identify a user agent (Overwing Atlas)",
     description:
-      "Say what a User-Agent string claims to be and whether the claim can be trusted, from the Overwing Atlas registry of 241 AI crawlers, fetchers and browser agents. Returns the claimed agent, operator, purpose class, verification method (Web Bot Auth signature, user-agent string only, or unattributable) and a trust note. Metered per day by Atlas tier: free 100, Pro 10,000, Team 100,000. Use it when deciding whether to serve, block, or pay-gate a request, or to understand who is hitting a site.",
+      "Say what a User-Agent string claims to be and whether the claim can be trusted, from the Overwing Atlas registry of 241 AI crawlers, fetchers and browser agents. Returns the claimed agent, operator, purpose class, verification method (Web Bot Auth signature, user-agent string only, or unattributable) and a trust note. Works with no API key: 10 lookups a day. With a key, metered per day by Atlas tier: free 100, Pro 10,000, Team 100,000. Use it when deciding whether to serve, block, or pay-gate a request, or to understand who is hitting a site.",
     inputSchema: { user_agent: z.string().min(1).max(2000).describe("The User-Agent header value to identify") },
   },
   async ({ user_agent }) =>
-    reply(await api("GET", `/api/v1/atlas/lookup?user_agent=${encodeURIComponent(user_agent)}`), (b) => {
-      const r = b as { identified: boolean; claims: { agent: string; operator: string | null; purpose_class: string | null; verification: string | null } | null; trust_note: string; matches: unknown[] };
-      if (!r.identified || !r.claims) return `Not identified. ${r.trust_note}`;
-      return `Claims: ${r.claims.agent} (${r.claims.operator ?? "unknown operator"}) · ${r.claims.purpose_class ?? "unclassified"} · verification: ${r.claims.verification ?? "unknown"}\n${r.trust_note}${r.matches.length > 1 ? `\n${r.matches.length - 1} other match(es); see the JSON.` : ""}`;
+    reply(await api("GET", `/api/v1/atlas/lookup?user_agent=${encodeURIComponent(user_agent)}`, undefined, "optional"), (b) => {
+      const r = b as { identified: boolean; claims: { agent: string; operator: string | null; purpose_class: string | null; verification: string | null } | null; trust_note: string; matches: unknown[]; access?: { remaining_today: number } };
+      const left = r.access ? `\nKeyless: ${r.access.remaining_today} lookups left today. Set OVERWING_API_KEY for 100 a day.` : "";
+      if (!r.identified || !r.claims) return `Not identified. ${r.trust_note}${left}`;
+      return `Claims: ${r.claims.agent} (${r.claims.operator ?? "unknown operator"}) · ${r.claims.purpose_class ?? "unclassified"} · verification: ${r.claims.verification ?? "unknown"}\n${r.trust_note}${r.matches.length > 1 ? `\n${r.matches.length - 1} other match(es); see the JSON.` : ""}${left}`;
     }),
 );
 
@@ -240,6 +273,175 @@ server.registerTool(
       const scans = r.sector_scans.map((s) => `  ${s.sector} (${s.date}):\n` + s.headline_findings.slice(0, 3).map((f) => `    - ${f.finding}`).join("\n")).join("\n");
       return `Registry: ${r.registry.count} agents, ${r.registry.operators} operators\n  purpose: ${JSON.stringify(r.registry.purpose_classes)}\n  verification: ${JSON.stringify(r.registry.verification)}\nBrowser-agent traffic share:\n${shares}\nField scans:\n${scans}\n\n${(r.report_summary ?? "").slice(0, 1500)}`;
     }),
+);
+
+
+// ---------------------------------------------------------------------------
+// Overwing Tower: clearance for agents operating legacy systems.
+// Setup tools carry the organization key; operating tools carry the agent key.
+// ---------------------------------------------------------------------------
+
+type TowerDecision = { outcome?: string; score?: number | null; reason?: string; results?: { question_id: string; answer: unknown; passed: boolean; probability: number }[]; checks?: { check: string; passed: boolean; detail?: string }[] };
+type TowerAction = { action_id: string; operation: string; status: string; dry_run?: boolean; review_id?: string; replayed?: boolean; decision?: TowerDecision; result?: unknown; error?: unknown };
+
+function decisionLines(d: TowerDecision | undefined): string {
+  if (!d || typeof d.outcome !== "string") return "";
+  const failedChecks = (d.checks ?? []).filter((c) => !c.passed).map((c) => `  check ${c.check}: FAILED${c.detail ? ` (${c.detail})` : ""}`);
+  const questions = (d.results ?? []).map((q) => `  ${q.question_id}: ${q.passed ? "pass" : "fail"} (answer=${JSON.stringify(q.answer)}, p=${q.probability})`);
+  return [`Decision: ${d.outcome.toUpperCase()}${d.score === null || d.score === undefined ? "" : `  score=${d.score}`}  ${d.reason ?? ""}`, ...failedChecks, ...questions].join("\n");
+}
+
+function actionSummary(a: TowerAction): string {
+  const next =
+    a.status === "pending" ? `Waiting on a person. Poll tower_get_action with ${a.action_id}; do not resubmit.`
+    : a.status === "rejected" ? "Rejected. Do not retry the same request; change it or ask a person."
+    : a.status === "executed" ? "Executed."
+    : a.status === "compensated" ? "Compensated: the original action has been undone."
+    : a.dry_run ? "Dry run: nothing was executed."
+    : "";
+  return [`Action ${a.action_id}  ${a.operation}  status=${a.status}${a.replayed ? "  (replay of an earlier request)" : ""}${a.review_id ? `  review_id=${a.review_id}` : ""}`, decisionLines(a.decision), a.result ? `Result: ${JSON.stringify(a.result)}` : "", next].filter(Boolean).join("\n");
+}
+
+/** A policy rejection (422) is an answer, not a transport failure: show the decision. */
+function actionReply(result: ApiResult): ReturnType<typeof reply> {
+  if (!result.ok && typeof result.body === "object" && result.body !== null && "action_id" in result.body) {
+    return reply({ ok: true, status: result.status, body: result.body }, (b) => actionSummary(b as TowerAction));
+  }
+  return reply(result, (b) => actionSummary(b as TowerAction));
+}
+
+const operationInput = z.record(z.string(), z.unknown()).describe("The operation's input, matching its input_schema from tower_capabilities");
+
+server.registerTool(
+  "tower_load_template",
+  {
+    title: "Load the starter workflow (Overwing Tower)",
+    description: "Set up Overwing Tower for this organization by loading the starter workflow: email purchase order to order entry, with create_order, update_order and cancel_order against a mock IBM i system, and a starter policy. Idempotent. Uses the organization key. Returns a sample input you can submit. Next: tower_create_agent.",
+    inputSchema: {},
+  },
+  async () =>
+    reply(await api("POST", "/api/v1/tower/template", {}, "org"), (b) => {
+      const r = b as { workflow: string; created: boolean; operations: string[]; target_system: string };
+      return `${r.created ? "Loaded" : "Already present"}: workflow ${r.workflow} on ${r.target_system}. Operations: ${r.operations.join(", ")}. Next: tower_create_agent. A sample create_order input is in the JSON.`;
+    }),
+);
+
+server.registerTool(
+  "tower_create_agent",
+  {
+    title: "Create an agent identity (Overwing Tower)",
+    description: "Create a scoped agent identity and its key. Uses the organization key. Scope it to the operations the agent needs (for example create_order) rather than * where you can. The key is kept in this server's memory and used by the other tower_ tools for the rest of the session; it is returned once so it can be stored as OVERWING_AGENT_KEY. Revoke with tower_revoke_agent.",
+    inputSchema: {
+      name: z.string().min(1).max(100).describe("A name a person will recognise in the review queue, e.g. order-intake-bot"),
+      scopes: z.array(z.string().regex(/^(\*|[a-z][a-z0-9_]{0,63})$/)).min(1).max(50).describe("Operation names this agent may call, or [\"*\"] for all"),
+      use_for_session: z.boolean().default(true).describe("Use this key for the other tower_ tools in this session"),
+    },
+  },
+  async ({ name, scopes, use_for_session }) => {
+    const result = await api("POST", "/api/v1/tower/agents", { name, scopes }, "org");
+    if (result.ok && use_for_session) {
+      const key = (result.body as { key?: unknown }).key;
+      if (typeof key === "string") agentKey = key;
+    }
+    return reply(result, (b) => {
+      const r = b as { agent_id: string; name: string; scopes: string[]; key: string };
+      return `Agent ${r.name} created (${r.agent_id}), scopes: ${r.scopes.join(", ")}.${use_for_session ? " Its key is now in use for this session." : ""}\nKey (shown once; store it as OVERWING_AGENT_KEY, do not share it): ${r.key}`;
+    });
+  },
+);
+
+server.registerTool(
+  "tower_list_agents",
+  { title: "List agents (Overwing Tower)", description: "List this organization's Tower agents with scopes, status and last use. Keys are never returned. Uses the organization key.", inputSchema: {} },
+  async () =>
+    reply(await api("GET", "/api/v1/tower/agents", undefined, "org"), (b) => {
+      const r = b as { agents: { agent_id: string; name: string; scopes: string[]; status: string; last_used_at: string | null }[]; active_limit: number };
+      if (r.agents.length === 0) return "No agents yet. Create one with tower_create_agent.";
+      return r.agents.map((a) => `  ${a.name}  ${a.status}  scopes=${a.scopes.join(",")}  last_used=${a.last_used_at ?? "never"}  id=${a.agent_id}`).join("\n");
+    }),
+);
+
+server.registerTool(
+  "tower_revoke_agent",
+  { title: "Revoke an agent (Overwing Tower)", description: "Revoke an agent. Its key stops working at once and cannot be restored. Uses the organization key.", inputSchema: { agent_id: z.string().uuid() } },
+  async ({ agent_id }) => reply(await api("DELETE", `/api/v1/tower/agents/${encodeURIComponent(agent_id)}`, undefined, "org"), () => `Agent ${agent_id} revoked.`),
+);
+
+server.registerTool(
+  "tower_capabilities",
+  {
+    title: "What may I do? (Overwing Tower)",
+    description: "List the operations this agent is allowed to call, each with the JSON Schema its input must match and its compensating operation. Call this first; build inputs from the schema rather than guessing. Uses the agent key.",
+    inputSchema: {},
+  },
+  async () =>
+    reply(await api("GET", "/api/v1/tower/capabilities", undefined, "agent"), (b) => {
+      const r = b as { agent: { name: string; scopes: string[] }; operations: { operation: string; workflow: string; is_write: boolean; compensating_operation: string | null; input_schema: { required?: string[] } }[] };
+      const ops = r.operations.map((o) => `  ${o.operation} (${o.workflow})${o.is_write ? " write" : " read"}${o.compensating_operation ? `, undo with ${o.compensating_operation}` : ""}; required: ${(o.input_schema.required ?? []).join(", ") || "none"}`);
+      return `Agent ${r.agent.name}, scopes ${r.agent.scopes.join(",")}\n${ops.join("\n")}\nFull input schemas are in the JSON.`;
+    }),
+);
+
+server.registerTool(
+  "tower_decide",
+  {
+    title: "Would this be allowed? (Overwing Tower)",
+    description: "Ask Tower how it would rule on an operation without doing anything: auto (would execute), review (a person must approve), or reject. Returns the score, the reason, and each policy question's answer. No side effects. Uses the agent key.",
+    inputSchema: { operation: z.string().min(1).max(64), input: operationInput },
+  },
+  async ({ operation, input }) => reply(await api("POST", "/api/v1/tower/decide", { operation, input }, "agent"), (b) => decisionLines(b as TowerDecision)),
+);
+
+server.registerTool(
+  "tower_submit_action",
+  {
+    title: "Request an action (Overwing Tower)",
+    description: "Ask Tower to perform an operation on the legacy system. Tower decides: executed (done), pending (a person must approve; poll tower_get_action, do not resubmit), or rejected (do not retry unchanged). Always send an idempotency_key that is stable for this business request, such as the source message id: repeating a key returns the original outcome instead of acting twice. Set dry_run to see the decision without executing. Uses the agent key.",
+    inputSchema: {
+      operation: z.string().min(1).max(64),
+      input: operationInput,
+      idempotency_key: z.string().min(1).max(128).describe("Stable per business request; reuse it on retries"),
+      dry_run: z.boolean().optional(),
+    },
+  },
+  async ({ operation, input, idempotency_key, dry_run }) => actionReply(await api("POST", "/api/v1/tower/actions", { operation, input, idempotency_key, dry_run }, "agent")),
+);
+
+server.registerTool(
+  "tower_get_action",
+  { title: "Get an action (Overwing Tower)", description: "Status and result of an action: pending, approved, executed, failed, compensated, or rejected. Use it to poll an action that is waiting on human review. Uses the agent key.", inputSchema: { action_id: z.string().uuid() } },
+  async ({ action_id }) => actionReply(await api("GET", `/api/v1/tower/actions/${encodeURIComponent(action_id)}`, undefined, "agent")),
+);
+
+server.registerTool(
+  "tower_compensate",
+  { title: "Undo an executed action (Overwing Tower)", description: "Run the compensating operation for an executed action, for example cancel the order that create_order made. Runs once; repeating it returns the first outcome. Uses the agent key.", inputSchema: { action_id: z.string().uuid() } },
+  async ({ action_id }) => actionReply(await api("POST", `/api/v1/tower/actions/${encodeURIComponent(action_id)}/compensate`, {}, "agent")),
+);
+
+server.registerTool(
+  "tower_get_receipt",
+  { title: "Get a receipt (Overwing Tower)", description: "Fetch one signed receipt by id or by sequence number: the payload, its hash, the previous link's hash, and the Ed25519 signature. Uses the agent key.", inputSchema: { id: z.string().min(1).max(64).describe("Receipt id or sequence number") } },
+  async ({ id }) => reply(await api("GET", `/api/v1/tower/receipts/${encodeURIComponent(id)}`, undefined, "agent")),
+);
+
+server.registerTool(
+  "tower_verify_receipts",
+  {
+    title: "Verify the receipt chain (Overwing Tower)",
+    description: "Recompute every hash and check every signature over a range of this organization's receipts. Reports the first break, if any. Defaults to the whole chain (up to 5,000 links per call). Uses the agent key.",
+    inputSchema: { from: z.number().int().min(1).optional(), to: z.number().int().min(1).optional() },
+  },
+  async ({ from, to }) => {
+    const qs = new URLSearchParams();
+    if (from) qs.set("from", String(from));
+    if (to) qs.set("to", String(to));
+    const q = qs.toString();
+    return reply(await api("GET", `/api/v1/tower/receipts/verify${q ? `?${q}` : ""}`, undefined, "agent"), (b) => {
+      const r = b as { ok: boolean; checked: number; from: number; to: number; first_break: { sequence: number; problem: string } | null };
+      return r.ok ? `Chain intact: ${r.checked} receipts verified (${r.from} to ${r.to}).` : `Chain BROKEN at sequence ${r.first_break?.sequence}: ${r.first_break?.problem}. ${r.checked} verified before the break.`;
+    });
+  },
 );
 
 server.registerResource(
