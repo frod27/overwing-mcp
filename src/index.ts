@@ -3,7 +3,8 @@
  * Overwing MCP server. Exposes the Overwing guardrails API as tools so any
  * MCP-capable agent can score text, manage rule sets, and read usage.
  *
- *   OVERWING_API_KEY    organization key, ow_live_...  (guardrails, Atlas, Tower setup)
+ *   OVERWING_API_KEY    optional organization key, ow_live_...  (higher limits, rule sets, Tower setup)
+ *                       Without it, evaluate and atlas_lookup use the free allowance: 10 a day each.
  *   OVERWING_AGENT_KEY  optional agent key, ow_agent_... (Tower operations). Without it,
  *                       tower_create_agent mints one and this process keeps it in memory.
  *   OVERWING_BASE_URL   optional, defaults to https://overwing.ai
@@ -80,7 +81,7 @@ function reply(result: ApiResult, summarize?: (body: unknown) => string): { cont
   return { content: [{ type: "text", text }], structuredContent: structured };
 }
 
-const server = new McpServer({ name: "overwing", version: "0.6.0" });
+const server = new McpServer({ name: "overwing", version: "0.7.0" });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -100,7 +101,7 @@ server.registerTool(
   {
     title: "Evaluate text",
     description:
-      "Score any text (typically an LLM's output) against an Overwing rule set. Returns an aggregate verdict of pass, fail, or review, a recommended_action (block, redact, review, or allow), and per-rule answers with probability, confidence, and the rule's action. Act on recommended_action: block means do not send, redact means remove the flagged content and resend, review means ask a human or a slower model, allow means proceed. Prebuilt sets: 'content-safety' (toxicity, PII, self-harm, sexual content, severity) and 'outbound-message', which also takes a context object (recipient, channel, owns_contact_info) so PII that the recipient already owns is not flagged.",
+      "Works with no API key: 10 evaluations a day, inputs up to 2,000 characters, and the text is not stored. With a key: 250 a day and up, inputs up to 100,000 characters, and your own rule sets. Score any text (typically an LLM's output) against an Overwing rule set. Returns an aggregate verdict of pass, fail, or review, a recommended_action (block, redact, review, or allow), and per-rule answers with probability, confidence, and the rule's action. Act on recommended_action: block means do not send, redact means remove the flagged content and resend, review means ask a human or a slower model, allow means proceed. Prebuilt sets: 'content-safety' (toxicity, PII, self-harm, sexual content, severity) and 'outbound-message', which also takes a context object (recipient, channel, owns_contact_info) so PII that the recipient already owns is not flagged.",
     inputSchema: {
       input: z.string().min(1).max(100_000).describe("The text to evaluate"),
       rule_set: z.string().default("content-safety").describe("Rule set slug"),
@@ -109,10 +110,11 @@ server.registerTool(
     },
   },
   async ({ input, rule_set, metadata, context }) =>
-    reply(await api("POST", "/api/v1/evaluate", { input, rule_set, metadata, context }), (b) => {
-      const r = b as { id: string; verdict: string; recommended_action?: string; aggregate_score: number; confidence: number; latency_ms: number; results: { rule: string; answer: unknown; confidence: number; verdict: string; action?: string }[] };
+    reply(await api("POST", "/api/v1/evaluate", { input, rule_set, metadata, context }, "optional"), (b) => {
+      const r = b as { id: string; verdict: string; recommended_action?: string; aggregate_score: number; confidence: number; latency_ms: number; results: { rule: string; answer: unknown; confidence: number; verdict: string; action?: string }[]; access?: { remaining_today: number } };
       const rules = r.results.map((x) => `  ${x.rule}: ${x.verdict}${x.verdict === "fail" && x.action ? ` -> ${x.action}` : ""} (answer=${JSON.stringify(x.answer)}, confidence=${x.confidence})`).join("\n");
-      return `Verdict: ${r.verdict.toUpperCase()}  recommended_action=${r.recommended_action ?? "n/a"}  score=${r.aggregate_score}  confidence=${r.confidence}  ${r.latency_ms}ms  id=${r.id}\n${rules}`;
+      const left = r.access ? `\nNo key: ${r.access.remaining_today} free evaluations left today, and the text was not stored. Set OVERWING_API_KEY for 250 a day.` : "";
+      return `Verdict: ${r.verdict.toUpperCase()}  recommended_action=${r.recommended_action ?? "n/a"}  score=${r.aggregate_score}  confidence=${r.confidence}  ${r.latency_ms}ms  id=${r.id}\n${rules}${left}`;
     }),
 );
 
@@ -219,7 +221,7 @@ server.registerTool(
   {
     title: "Identify a user agent (Overwing Atlas)",
     description:
-      "Say what a User-Agent string claims to be and whether the claim can be trusted, from the Overwing Atlas registry of 241 AI crawlers, fetchers and browser agents. Returns the claimed agent, operator, purpose class, verification method (Web Bot Auth signature, user-agent string only, or unattributable) and a trust note. Works with no API key: 10 lookups a day. With a key, metered per day by Atlas tier: free 100, Pro 10,000, Team 100,000. Use it when deciding whether to serve, block, or pay-gate a request, or to understand who is hitting a site.",
+      "Say what a User-Agent string claims to be and whether the claim can be trusted, from the Overwing Atlas registry of AI crawlers, fetchers and browser agents. Returns the claimed agent, operator, purpose class, verification method (Web Bot Auth signature, user-agent string only, or unattributable) and a trust note. Works with no API key: 10 lookups a day. With a key, metered per day by Atlas tier: free 100, Pro 10,000, Team 100,000. Use it when deciding whether to serve, block, or pay-gate a request, or to understand who is hitting a site.",
     inputSchema: { user_agent: z.string().min(1).max(2000).describe("The User-Agent header value to identify") },
   },
   async ({ user_agent }) =>

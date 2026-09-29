@@ -28,7 +28,7 @@ Try it without installing anything: paste text into the console at [overwing.ai]
 
 ## Install
 
-You need an API key. Get one at [overwing.ai/login](https://overwing.ai/login), or let your agent sign itself up:
+It works with no API key: `evaluate` and `atlas_lookup` each run 10 times a day free, and text sent without a key is not stored. For more, get a key at [overwing.ai/login](https://overwing.ai/login), or let your agent sign itself up:
 
 ```bash
 curl -X POST https://overwing.ai/api/v1/signup \
@@ -60,7 +60,7 @@ Set `OVERWING_BASE_URL` to point at a self-hosted deployment. Requires Node 20+.
 
 For [Overwing Tower](https://overwing.ai/products/tower), set `OVERWING_AGENT_KEY=ow_agent_...` to operate as an existing agent. Without it, `tower_create_agent` mints a key with the organization key and keeps it in memory for the session.
 
-`atlas_lookup`, `atlas_summary` and `list_plans` work with no key at all.
+`evaluate`, `atlas_lookup`, `atlas_summary` and `list_plans` work with no key at all.
 
 ## Tools
 
@@ -71,7 +71,7 @@ For [Overwing Tower](https://overwing.ai/products/tower), set `OVERWING_AGENT_KE
 | `list_rule_sets` · `get_rule_set` · `create_rule_set` | Browse the prebuilt set or define your own rules: yes/no questions, classifications, or scored scales. |
 | `get_evaluation` · `list_evaluations` | Read stored results, filter by verdict or rule set, page with a cursor. |
 | `atlas_lookup` | Overwing Atlas: say what a User-Agent string claims to be and whether the claim can be trusted (Web Bot Auth, spoofable string, or unattributable). Works with no key, 10 a day; 100 a day with a free key. |
-| `atlas_agents` · `atlas_summary` | Search the registry of 241 AI crawlers, fetchers and browser agents; get traffic shares, sector field-scan headlines, and the agent-spending summary. |
+| `atlas_agents` · `atlas_summary` | Search the registry of AI crawlers, fetchers and browser agents; get traffic shares, sector field-scan headlines, and the agent-spending summary. |
 | `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower setup, with the organization key: load the starter order-entry workflow, then mint a scoped agent identity. The new agent key is used for the rest of the session. |
 | `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower operations, with the agent key: see which operations you may call and their input schemas, ask how a request would be ruled, submit it (executed, pending human review, or rejected), poll it, undo it. |
 | `tower_get_receipt` · `tower_verify_receipts` | Read a signed receipt, or recompute every hash and signature in the chain. |

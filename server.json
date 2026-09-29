@@ -8,20 +8,20 @@
     "source": "github"
   },
   "websiteUrl": "https://overwing.ai",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "overwing-mcp",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "OVERWING_API_KEY",
-          "description": "Overwing organization key (ow_live_...). Needed for guardrails and Tower setup; Atlas lookups work without it. Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
+          "description": "Overwing organization key (ow_live_...). Optional: evaluate and atlas_lookup work without it, 10 a day each. Needed for higher limits, rule sets and Tower setup. Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
