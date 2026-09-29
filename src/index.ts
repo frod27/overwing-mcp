@@ -81,7 +81,7 @@ function reply(result: ApiResult, summarize?: (body: unknown) => string): { cont
   return { content: [{ type: "text", text }], structuredContent: structured };
 }
 
-const server = new McpServer({ name: "overwing", version: "0.7.0" });
+const server = new McpServer({ name: "overwing", version: "0.7.1" });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -101,9 +101,9 @@ server.registerTool(
   {
     title: "Evaluate text",
     description:
-      "Works with no API key: 10 evaluations a day, inputs up to 2,000 characters, and the text is not stored. With a key: 250 a day and up, inputs up to 100,000 characters, and your own rule sets. Score any text (typically an LLM's output) against an Overwing rule set. Returns an aggregate verdict of pass, fail, or review, a recommended_action (block, redact, review, or allow), and per-rule answers with probability, confidence, and the rule's action. Act on recommended_action: block means do not send, redact means remove the flagged content and resend, review means ask a human or a slower model, allow means proceed. Prebuilt sets: 'content-safety' (toxicity, PII, self-harm, sexual content, severity) and 'outbound-message', which also takes a context object (recipient, channel, owns_contact_info) so PII that the recipient already owns is not flagged.",
+      "Works with no API key: 10 evaluations a day, inputs up to 2,000 characters, and the text is not stored. With a key: 250 a day and up, inputs up to 100,000 characters, and your own rule sets. Score any text (typically an LLM's output) against an Overwing rule set. The text can be in any language; tested in Spanish, Portuguese, French, German, Japanese, Chinese, Korean, Arabic and Hindi. Results come back in English. Returns an aggregate verdict of pass, fail, or review, a recommended_action (block, redact, review, or allow), and per-rule answers with probability, confidence, and the rule's action. Act on recommended_action: block means do not send, redact means remove the flagged content and resend, review means ask a human or a slower model, allow means proceed. Prebuilt sets: 'content-safety' (toxicity, PII, self-harm, sexual content, severity) and 'outbound-message', which also takes a context object (recipient, channel, owns_contact_info) so PII that the recipient already owns is not flagged.",
     inputSchema: {
-      input: z.string().min(1).max(100_000).describe("The text to evaluate"),
+      input: z.string().min(1).max(100_000).describe("The text to evaluate, in any language"),
       rule_set: z.string().default("content-safety").describe("Rule set slug"),
       metadata: z.record(z.string(), z.unknown()).optional().describe("Opaque data stored with the evaluation and echoed in webhooks (max 8 KB)"),
       context: contextSchema,
