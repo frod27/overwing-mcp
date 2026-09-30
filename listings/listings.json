@@ -1,0 +1,91 @@
+{
+  "en": {
+    "name": "Overwing: Guardrails for LLM Output",
+    "tagline": "Check any text before your agent sends it",
+    "short_description": "Guardrails for AI agents: checks personal data, leaked secrets and toxicity; returns a verdict.",
+    "description": "Overwing is an API for AI agents, exposed here as 24 MCP tools (npx -y overwing-mcp). Send any text (a draft, a model's output, an incoming message) and get a pass / fail / review verdict, one recommended action (block, redact, review or allow) and per-rule results with calibrated confidence. It checks personal data, leaked passwords and keys, toxicity, self-harm and sexual content. Works with no API key: 10 evaluations a day, text not stored. Atlas identifies which AI crawler a User-Agent claims to be.",
+    "keywords": [
+      "guardrails",
+      "content moderation",
+      "content safety",
+      "PII detection",
+      "secret leak detection",
+      "redaction",
+      "LLM output",
+      "AI agents",
+      "MCP server",
+      "toxicity",
+      "AI crawler detection",
+      "user agent lookup"
+    ],
+    "category_hint": "Security / AI safety and content moderation"
+  },
+  "zh-CN": {
+    "name": "Overwing：大模型输出护栏与内容审核",
+    "tagline": "发送前先检查文本：内容安全、敏感信息、个人信息（PII）",
+    "short_description": "面向 AI 智能体的内容审核护栏：检查个人信息（PII）、密码和密钥泄露、攻击性言论等，返回 pass / fail / review 判定和建议动作。",
+    "description": "Overwing 是面向 AI 智能体的 API，overwing-mcp 把它做成 24 个 MCP 工具。把任意文本（草稿、大模型输出、收到的消息）发给它做内容审核，即可得到 pass / fail / review 判定、一个建议动作（block 拦截 / redact 脱敏 / review 复核 / allow 放行），以及每条规则的结果和 0 到 1 的校准置信度。预置规则集检查个人信息（PII）等隐私内容、密码和密钥等敏感信息泄露、攻击性言论、自残和色情内容。没有 API key 也能用：每天 10 次评估，单次最多 2,000 字符，文本不会被存储；免费 key 每天 250 次。输入可以是任何语言，已在简体中文等 9 种语言上做过小规模测试（结果与英文一致，并非基准测试）；返回的规则名和字段为英文。Atlas 用于爬虫识别：判断一个 User-Agent 自称是哪个 AI 爬虫或智能体、由谁运营、能否验证。Tower（试点阶段）为操作传统业务系统的智能体提供放行审批。判定来自 TypeSafe 的 Jev 模型，是经过校准的信号，而不是保证。",
+    "keywords": [
+      "内容审核",
+      "内容安全",
+      "敏感信息",
+      "敏感词",
+      "脱敏",
+      "隐私",
+      "个人信息",
+      "PII",
+      "大模型输出",
+      "护栏",
+      "AI 智能体",
+      "MCP",
+      "爬虫识别",
+      "User-Agent 识别"
+    ],
+    "category_hint": "安全 / 内容安全"
+  },
+  "ja": {
+    "name": "Overwing：LLM 出力のガードレール・コンテンツモデレーション",
+    "tagline": "送信前にテキストをチェック。個人情報・機密情報・有害表現を判定",
+    "short_description": "AI エージェント向けガードレール。個人情報、パスワードや鍵の漏えい、有害表現などを検査し、pass / fail / review の判定と推奨アクションを返します。",
+    "description": "Overwing は AI エージェント向けの API で、overwing-mcp はそれを 24 個の MCP ツールとして提供します。下書き、LLM 出力、受信メッセージなど任意のテキストを送ると、pass / fail / review の判定、推奨アクション（block 遮断 / redact マスキング / review 要確認 / allow 許可）、ルールごとの結果と 0〜1 の較正済み信頼度が返ります。個人情報、パスワードや鍵などの機密情報の漏えい、有害表現、自傷、性的コンテンツを検査します。API キーなしでも 1 日 10 回使え（2,000 文字まで、テキストは保存されません）、無料キーなら 1 日 250 回です。入力は何語でもよく、日本語を含む 9 言語の小規模なテストでは英語と同じ結果でした（ベンチマークではありません）。レスポンスのルール名やフィールドは英語です。Atlas は、User-Agent が名乗る AI クローラーやエージェント、その運営者、主張を検証できるかを判定します。Tower（パイロット段階）は、レガシー業務システムを操作するエージェント向けのクリアランス機能です。判定は TypeSafe の Jev モデルによる較正済みのシグナルであり、保証ではありません。",
+    "keywords": [
+      "ガードレール",
+      "コンテンツモデレーション",
+      "個人情報",
+      "PII",
+      "機密情報",
+      "マスキング",
+      "情報漏えい",
+      "LLM 出力",
+      "生成AI",
+      "AIエージェント",
+      "MCPサーバー",
+      "クローラー判定",
+      "User-Agent 判定"
+    ],
+    "category_hint": "セキュリティ / AI セーフティ・コンテンツモデレーション"
+  },
+  "ko": {
+    "name": "Overwing: LLM 출력 가드레일 · 콘텐츠 모더레이션",
+    "tagline": "보내기 전에 텍스트를 검사: 개인정보, 기밀 정보, 유해 표현 판정",
+    "short_description": "AI 에이전트용 가드레일. 개인정보, 비밀번호·키 유출, 유해 표현 등을 검사하고 pass / fail / review 판정과 권장 조치를 반환합니다.",
+    "description": "Overwing은 AI 에이전트를 위한 API이며, overwing-mcp는 이를 24개의 MCP 도구로 제공합니다. 초안, LLM 출력, 수신 메시지 등 어떤 텍스트든 보내면 pass / fail / review 판정, 권장 조치(block 차단 / redact 마스킹 / review 검토 / allow 허용), 규칙별 결과와 0~1 사이의 보정된 신뢰도를 돌려줍니다. 개인정보, 비밀번호·키 같은 기밀 정보 유출, 유해 표현, 자해, 성적 콘텐츠를 검사합니다. API 키 없이도 하루 10회 쓸 수 있고(2,000자까지, 텍스트는 저장되지 않음), 무료 키로는 하루 250회입니다. 입력은 어떤 언어든 가능하며, 한국어를 포함한 9개 언어의 소규모 테스트에서 영어와 같은 결과가 나왔습니다(벤치마크는 아님). 응답의 규칙 이름과 필드는 영어입니다. Atlas는 User-Agent가 자칭하는 AI 크롤러나 에이전트, 운영 주체, 그 주장의 검증 가능 여부를 식별합니다. Tower(파일럿 단계)는 레거시 업무 시스템을 다루는 에이전트를 위한 승인 절차입니다. 판정은 TypeSafe의 Jev 모델이 내는 보정된 신호이며, 보증이 아닙니다.",
+    "keywords": [
+      "가드레일",
+      "콘텐츠 모더레이션",
+      "콘텐츠 검수",
+      "개인정보",
+      "PII",
+      "민감정보",
+      "마스킹",
+      "개인정보 유출",
+      "LLM 출력",
+      "생성형 AI",
+      "AI 에이전트",
+      "MCP 서버",
+      "크롤러 식별",
+      "User-Agent 식별"
+    ],
+    "category_hint": "보안 / AI 안전 · 콘텐츠 모더레이션"
+  }
+}
