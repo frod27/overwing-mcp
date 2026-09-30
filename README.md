@@ -81,7 +81,7 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 
 | Tool | What it does |
 | --- | --- |
-| `evaluate` | Score one text against a rule set. Returns the verdict, a `recommended_action` (block, redact, review, or allow), aggregate score, confidence, latency, and per-rule results with each rule's action. Takes an optional `context` object (recipient, channel, ownership) that context-aware rule sets such as `outbound-message` read. |
+| `evaluate` | Score one text against a rule set. Returns the verdict, a `recommended_action` (block, redact, review, or allow), aggregate score, confidence, latency, and per-rule results with each rule's action. Takes an optional `context` object (recipient, channel, ownership) that context-aware rule sets such as `outbound-message` read, and `store: false` to run the check without keeping the text. |
 | `evaluate_batch` | Score up to 50 texts in one call, with a summary and per-item verdicts and recommended actions. |
 | `list_rule_sets` · `get_rule_set` · `create_rule_set` | Browse the prebuilt set or define your own rules: yes/no questions, classifications, or scored scales. |
 | `get_evaluation` · `list_evaluations` | Read stored results, filter by verdict or rule set, page with a cursor. |
@@ -93,6 +93,30 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 | `get_usage` · `whoami` · `list_plans` | Today's quota, the org behind the key, and the public plan catalog. |
 
 The `overwing://guide` resource returns the full plain-text API guide.
+
+## Data handling and security
+
+What this server does on your machine: it reads three environment variables (`OVERWING_API_KEY`, `OVERWING_AGENT_KEY`, `OVERWING_BASE_URL`) and makes HTTPS requests to the Overwing API. It reads no files, runs no commands, and talks to no other host. It has two runtime dependencies (`@modelcontextprotocol/sdk`, `zod`), and the whole server is one file: [src/index.ts](src/index.ts).
+
+What happens to text you evaluate:
+
+- It is sent to the Overwing API, and from there to TypeSafe, whose Jev model produces the verdict. It is not used to train models.
+- **Without a key** the text is never stored.
+- **With a key** the text, context and verdict are stored so you can read them back with `get_evaluation`, until you delete them. To change that:
+  - pass `store: false` to `evaluate` or `evaluate_batch` to keep no text or context for that call;
+  - set `store_inputs: false` on the organization (`PATCH /api/v1/org`, or the dashboard) to keep none at all;
+  - set `retention_days` on the organization to delete evaluations after that many days.
+- Traffic is encrypted in transit (TLS) and the database is encrypted at rest (AES-256).
+
+Give your agent a restricted key. A key with scope `evaluate` can run checks and read rule sets, and cannot read stored evaluations, change rule sets, manage keys, webhooks or billing, or delete anything:
+
+```bash
+curl -X POST https://overwing.ai/api/v1/api-keys \
+  -H "Authorization: Bearer ow_live_..." -H "Content-Type: application/json" \
+  -d '{"name":"agent","scope":"evaluate"}'
+```
+
+Overwing is a young service and has not had an independent security audit. The full picture, including subprocessors and what we have not done, is at [overwing.ai/security](https://overwing.ai/security); the privacy policy is at [overwing.ai/privacy](https://overwing.ai/privacy). To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Example
 
