@@ -81,7 +81,7 @@ function reply(result: ApiResult, summarize?: (body: unknown) => string): { cont
   return { content: [{ type: "text", text }], structuredContent: structured };
 }
 
-const server = new McpServer({ name: "overwing", version: "0.7.3" });
+const server = new McpServer({ name: "overwing", version: "0.7.2" });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
