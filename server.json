@@ -8,13 +8,13 @@
     "source": "github"
   },
   "websiteUrl": "https://overwing.ai",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "overwing-mcp",
-      "version": "0.7.2",
+      "version": "0.7.3",
       "transport": {
         "type": "stdio"
       },
