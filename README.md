@@ -29,6 +29,16 @@ Score any text for safety and quality. Get <code>pass</code> / <code>fail</code>
 
 Try it without installing anything: paste text into the console at [overwing.ai](https://overwing.ai).
 
+## Hosted, no install
+
+The same 24 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
+
+```bash
+claude mcp add --transport http overwing https://overwing.ai/mcp
+```
+
+No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary` and `list_plans`. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
+
 ## Install
 
 It works with no API key: `evaluate` and `atlas_lookup` each run 10 times a day free, and text sent without a key is not stored. For more, get a key at [overwing.ai/login](https://overwing.ai/login), or let your agent sign itself up:

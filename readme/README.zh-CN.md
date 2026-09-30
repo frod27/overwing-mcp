@@ -29,6 +29,16 @@
 
 不用安装也能试用：把文本粘贴到 [overwing.ai](https://overwing.ai) 的控制台即可。
 
+## 托管版，无需安装
+
+同样的 24 个工具也可以通过 `https://overwing.ai/mcp`（Streamable HTTP）直接使用。任何支持远程 MCP URL 的客户端都可以连接：
+
+```bash
+claude mcp add --transport http overwing https://overwing.ai/mcp
+```
+
+`evaluate`、`atlas_lookup`、`atlas_summary` 和 `list_plans` 不需要 key。其余工具需要在连接上发送 `Authorization: Bearer ow_live_...`。
+
 ## 安装
 
 没有 API key 也能使用：`evaluate` 和 `atlas_lookup` 每天各可免费调用 10 次，不带 key 发送的文本不会被存储。需要更高额度时，可以在 [overwing.ai/login](https://overwing.ai/login) 获取 key，或者让你的智能体自行注册：

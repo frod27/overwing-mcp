@@ -2,19 +2,19 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "ai.overwing/mcp",
   "title": "Overwing",
-  "description": "Guardrails for LLM output: pass / fail / review verdicts with calibrated confidence in under 500 ms.",
+  "description": "Guardrails for LLM output: pass / fail / review verdicts and one recommended action. Hosted or npm.",
   "repository": {
     "url": "https://github.com/frod27/overwing-mcp",
     "source": "github"
   },
   "websiteUrl": "https://overwing.ai",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "overwing-mcp",
-      "version": "0.7.1",
+      "version": "0.7.2",
       "transport": {
         "type": "stdio"
       },
@@ -39,6 +39,20 @@
           "isRequired": false,
           "isSecret": false,
           "format": "string"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://overwing.ai/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. \"Bearer ow_live_...\" lifts the free limits; evaluate and atlas_lookup work without it, 10 a day each",
+          "isRequired": false,
+          "isSecret": true
         }
       ]
     }

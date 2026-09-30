@@ -29,6 +29,16 @@
 
 설치 없이 바로 써 볼 수도 있습니다. [overwing.ai](https://overwing.ai)의 콘솔에 텍스트를 붙여 넣으세요.
 
+## 호스팅 버전(설치 불필요)
+
+같은 24개 도구를 `https://overwing.ai/mcp`(Streamable HTTP)에서도 제공합니다. 원격 MCP URL을 지정할 수 있는 클라이언트라면 바로 연결할 수 있습니다.
+
+```bash
+claude mcp add --transport http overwing https://overwing.ai/mcp
+```
+
+`evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans`는 키 없이 사용할 수 있습니다. 나머지는 연결 시 `Authorization: Bearer ow_live_...`를 보내야 합니다.
+
 ## 설치
 
 API 키 없이도 동작합니다. `evaluate`와 `atlas_lookup`은 각각 하루 10회까지 무료로 실행할 수 있고, 키 없이 보낸 텍스트는 저장되지 않습니다. 더 많이 쓰려면 [overwing.ai/login](https://overwing.ai/login)에서 키를 발급받거나, 에이전트가 직접 가입하게 하세요.
