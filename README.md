@@ -31,13 +31,13 @@ Try it without installing anything: paste text into the console at [overwing.ai]
 
 ## Hosted, no install
 
-The same 24 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
+The same 27 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
 ```
 
-No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary` and `list_plans`. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
+No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans` and the three `beacon_` tools. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
 
 ## Install
 
@@ -87,6 +87,7 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 | `get_evaluation` · `list_evaluations` | Read stored results, filter by verdict or rule set, page with a cursor. |
 | `atlas_lookup` | Overwing Atlas: say what a User-Agent string claims to be and whether the claim can be trusted (Web Bot Auth, spoofable string, or unattributable). Works with no key, 10 a day; 100 a day with a free key. |
 | `atlas_agents` · `atlas_summary` | Search the registry of AI crawlers, fetchers and browser agents; get traffic shares, sector field-scan headlines, and the agent-spending summary. |
+| `beacon_start` · `beacon_report` · `beacon_sample` | Overwing Beacon: is a site reachable by agents? Checks robots.txt, llms.txt, the MCP server card, endpoint and Registry listing, the A2A agent card and OpenAPI, and how the home page reads to a model. `beacon_start` returns a card checkout link ($5) and an id; `beacon_report` returns the report once paid; `beacon_sample` is a real report, free. Agents with a wallet pay $1 over x402 instead. No key. |
 | `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower setup, with the organization key: load the starter order-entry workflow, then mint a scoped agent identity. The new agent key is used for the rest of the session. |
 | `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower operations, with the agent key: see which operations you may call and their input schemas, ask how a request would be ruled, submit it (executed, pending human review, or rejected), poll it, undo it. |
 | `tower_get_receipt` · `tower_verify_receipts` | Read a signed receipt, or recompute every hash and signature in the chain. |
