@@ -8,7 +8,7 @@
 </p>
 
 <p align="center"><strong>Guardrails for LLM output, as MCP tools.</strong><br>
-Score any text for safety, quality and compliance. Get <code>pass</code> / <code>fail</code> / <code>review</code> verdicts with calibrated confidence in under 500 ms.</p>
+Score any text for safety and quality. Get <code>pass</code> / <code>fail</code> / <code>review</code> verdicts with calibrated confidence, usually in under 500 ms.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/overwing-mcp"><img alt="npm" src="https://img.shields.io/npm/v/overwing-mcp?color=0B1220&label=overwing-mcp"></a>
@@ -17,12 +17,14 @@ Score any text for safety, quality and compliance. Get <code>pass</code> / <code
   <a href="https://mcpmarket.com/server/overwing?utm_source=readme&utm_medium=badge"><img alt="Listed on MCP Market" src="https://mcpmarket.com/badge/server/overwing.svg?theme=dark"></a>
 </p>
 
+<p align="center"><a href="readme/README.zh-CN.md">简体中文</a> · <a href="readme/README.ja.md">日本語</a> · <a href="readme/README.ko.md">한국어</a></p>
+
 ---
 
 **Overwing** is an API that checks what your model said before it ships. This package exposes it to any MCP-capable agent: Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, OpenAI's Agents SDK, and anything else that speaks the [Model Context Protocol](https://modelcontextprotocol.io).
 
 - **Real verdicts, not vibes.** Every rule returns a typed answer, a probability, and a confidence. `fail` means a rule matched; `review` means it was unsure; `pass` means neither.
-- **Prebuilt `content-safety` rule set**: toxicity, personal data, self-harm, sexual content, severity. Or write your own rules in plain language.
+- **Prebuilt `content-safety` and `outbound-message` rule sets**: toxicity, personal data, confidential leaks, self-harm, sexual content, severity. Or write your own rules in plain language.
 - **Built for agents.** Sign up, pay, evaluate, rotate keys, and cancel, all as JSON. No CAPTCHA, no browser required. See [overwing.ai/llms.txt](https://overwing.ai/llms.txt).
 
 Try it without installing anything: paste text into the console at [overwing.ai](https://overwing.ai).
@@ -62,6 +64,8 @@ Set `OVERWING_BASE_URL` to point at a self-hosted deployment. Requires Node 20+.
 For [Overwing Tower](https://overwing.ai/products/tower), set `OVERWING_AGENT_KEY=ow_agent_...` to operate as an existing agent. Without it, `tower_create_agent` mints a key with the organization key and keeps it in memory for the session.
 
 `evaluate`, `atlas_lookup`, `atlas_summary` and `list_plans` work with no key at all.
+
+The text can be in any language. It was tested on 2026-09-29 in Spanish, Portuguese, French, German, Japanese, Simplified Chinese, Korean, Arabic and Hindi: a small test, not a benchmark. Results come back in English.
 
 ## Tools
 
