@@ -94,6 +94,30 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 `overwing://guide` 리소스는 일반 텍스트로 된 전체 API 가이드를 반환합니다.
 
+## 데이터 처리와 보안
+
+이 서버가 사용자의 컴퓨터에서 하는 일: 환경 변수 3개(`OVERWING_API_KEY`, `OVERWING_AGENT_KEY`, `OVERWING_BASE_URL`)를 읽고 Overwing API에 HTTPS 요청을 보냅니다. 파일을 읽지 않고, 명령을 실행하지 않으며, 다른 호스트와 통신하지 않습니다. 런타임 의존성은 2개(`@modelcontextprotocol/sdk`, `zod`)이고, 서버 전체가 파일 하나입니다: [src/index.ts](../src/index.ts).
+
+평가하는 텍스트의 처리:
+
+- 텍스트는 Overwing API로 전송되고, 거기서 TypeSafe로 전송됩니다. TypeSafe의 Jev 모델이 판정을 내립니다. 모델 학습에는 사용되지 않습니다.
+- **키가 없으면** 텍스트는 저장되지 않습니다.
+- **키가 있으면** 텍스트, context, 판정이 저장되며, 삭제하기 전까지 `get_evaluation`으로 다시 읽을 수 있습니다. 이를 바꾸려면:
+  - `evaluate` 또는 `evaluate_batch`에 `store: false`를 넘기면 해당 호출의 텍스트와 context는 저장되지 않습니다.
+  - 조직에 `store_inputs: false`를 설정하면(`PATCH /api/v1/org` 또는 대시보드) 전혀 저장되지 않습니다.
+  - 조직에 `retention_days`를 설정하면 그 일수가 지난 평가는 삭제됩니다.
+- 전송 구간은 TLS로 암호화되고, 데이터베이스는 저장 시 AES-256으로 암호화됩니다.
+
+에이전트에는 권한이 제한된 키를 주세요. 스코프가 `evaluate`인 키는 검사를 실행하고 규칙 세트를 읽을 수만 있습니다. 저장된 평가 읽기, 규칙 세트 변경, 키·웹훅·결제 관리, 삭제는 할 수 없습니다.
+
+```bash
+curl -X POST https://overwing.ai/api/v1/api-keys \
+  -H "Authorization: Bearer ow_live_..." -H "Content-Type: application/json" \
+  -d '{"name":"agent","scope":"evaluate"}'
+```
+
+Overwing은 신생 서비스이며 아직 독립적인 보안 감사를 받지 않았습니다. 하위 처리자와 아직 하지 않은 일을 포함한 전체 내용은 [overwing.ai/security](https://overwing.ai/security)(영어)에, 개인정보 처리방침은 [overwing.ai/privacy](https://overwing.ai/privacy)(영어)에 있습니다. 취약점 신고 방법은 [SECURITY.md](../SECURITY.md)를 참고하세요.
+
 ## 예시
 
 에이전트에게 이렇게 요청합니다.

@@ -94,6 +94,30 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 `overwing://guide` リソースは、プレーンテキストの API ガイド全文を返します。
 
+## データの取り扱いとセキュリティ
+
+このサーバーがお使いのマシン上で行うこと：3 つの環境変数（`OVERWING_API_KEY`、`OVERWING_AGENT_KEY`、`OVERWING_BASE_URL`）を読み取り、Overwing API に HTTPS リクエストを送ります。ファイルは読まず、コマンドも実行せず、ほかのホストとは通信しません。実行時の依存パッケージは 2 つ（`@modelcontextprotocol/sdk`、`zod`）で、サーバー全体は 1 ファイルです：[src/index.ts](../src/index.ts)。
+
+評価するテキストの扱い：
+
+- テキストは Overwing API に送られ、そこから TypeSafe に送られます。TypeSafe の Jev モデルが判定を出します。モデルの学習には使われません。
+- **キーなし**の場合、テキストは保存されません。
+- **キーあり**の場合、テキスト、context、判定は保存され、削除するまで `get_evaluation` で読み出せます。これを変えるには：
+  - `evaluate` または `evaluate_batch` に `store: false` を渡すと、その呼び出しではテキストも context も保存されません。
+  - 組織に `store_inputs: false` を設定すると（`PATCH /api/v1/org` またはダッシュボード）、いっさい保存されません。
+  - 組織に `retention_days` を設定すると、その日数を過ぎた評価は削除されます。
+- 通信は TLS で暗号化され、データベースは保存時に AES-256 で暗号化されます。
+
+エージェントには権限を絞ったキーを渡してください。スコープが `evaluate` のキーは、チェックの実行とルールセットの読み取りだけができます。保存済みの評価の読み取り、ルールセットの変更、キー・Webhook・課金の管理、削除はできません。
+
+```bash
+curl -X POST https://overwing.ai/api/v1/api-keys \
+  -H "Authorization: Bearer ow_live_..." -H "Content-Type: application/json" \
+  -d '{"name":"agent","scope":"evaluate"}'
+```
+
+Overwing は新しいサービスで、第三者によるセキュリティ監査はまだ受けていません。サブプロセッサーや未対応の事項を含む全体像は [overwing.ai/security](https://overwing.ai/security)（英語）に、プライバシーポリシーは [overwing.ai/privacy](https://overwing.ai/privacy)（英語）にあります。脆弱性の報告方法は [SECURITY.md](../SECURITY.md) を参照してください。
+
 ## 使用例
 
 エージェントにこう頼みます。

@@ -94,6 +94,30 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 `overwing://guide` 资源会返回完整的纯文本 API 指南。
 
+## 数据处理与安全
+
+这个服务器在你的机器上做什么：读取三个环境变量（`OVERWING_API_KEY`、`OVERWING_AGENT_KEY`、`OVERWING_BASE_URL`），并向 Overwing API 发送 HTTPS 请求。它不读取文件，不执行命令，也不与其他主机通信。运行时依赖只有两个（`@modelcontextprotocol/sdk`、`zod`），整个服务器只有一个文件：[src/index.ts](../src/index.ts)。
+
+你提交评估的文本会怎样：
+
+- 文本会发送到 Overwing API，再由它发送给 TypeSafe，由 TypeSafe 的 Jev 模型给出判定。文本不会用于训练模型。
+- **不带密钥**时，文本不会被存储。
+- **带密钥**时，文本、context 和判定会被存储，在你删除之前可以用 `get_evaluation` 读回。要改变这一点：
+  - 给 `evaluate` 或 `evaluate_batch` 传 `store: false`，这次调用就不保留文本和 context。
+  - 在组织上设置 `store_inputs: false`（`PATCH /api/v1/org` 或控制台），则一律不保留。
+  - 在组织上设置 `retention_days`，超过这个天数的评估会被删除。
+- 传输使用 TLS 加密，数据库静态数据使用 AES-256 加密。
+
+请给你的智能体一个受限的密钥。作用域为 `evaluate` 的密钥只能运行检查和读取规则集，不能读取已存储的评估、修改规则集、管理密钥、Webhook 或账单，也不能删除任何内容。
+
+```bash
+curl -X POST https://overwing.ai/api/v1/api-keys \
+  -H "Authorization: Bearer ow_live_..." -H "Content-Type: application/json" \
+  -d '{"name":"agent","scope":"evaluate"}'
+```
+
+Overwing 是一项新服务，尚未接受过独立的安全审计。包括子处理方和尚未完成的事项在内的完整说明见 [overwing.ai/security](https://overwing.ai/security)（英文），隐私政策见 [overwing.ai/privacy](https://overwing.ai/privacy)（英文）。如何报告漏洞见 [SECURITY.md](../SECURITY.md)。
+
 ## 示例
 
 对你的智能体说：

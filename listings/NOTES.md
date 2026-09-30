@@ -2,6 +2,8 @@
 
 All zh-CN, ja and ko text in `listings/listings.json` and `readme/README.*.md` was written by a model (Claude) on 2026-09-30. It has NOT been reviewed by a native speaker. Have one read it before it goes on a marketplace.
 
+The "Data handling and security" section in the three translated READMEs was added later the same day, translated by a model from the English README, and is likewise unreviewed.
+
 Sources: the fact sheet given for this task, `README.md`, and `src/index.ts` (24 registered tools, counted).
 
 ## Discrepancies between README.md and the fact sheet
