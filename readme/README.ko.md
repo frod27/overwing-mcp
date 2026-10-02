@@ -31,7 +31,7 @@
 
 ## 호스팅 버전(설치 불필요)
 
-같은 31개 도구를 `https://overwing.ai/mcp`(Streamable HTTP)에서도 제공합니다. 원격 MCP URL을 지정할 수 있는 클라이언트라면 바로 연결할 수 있습니다.
+같은 34개 도구를 `https://overwing.ai/mcp`(Streamable HTTP)에서도 제공합니다. 원격 MCP URL을 지정할 수 있는 클라이언트라면 바로 연결할 수 있습니다.
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp

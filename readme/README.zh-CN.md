@@ -31,7 +31,7 @@
 
 ## 托管版，无需安装
 
-同样的 31 个工具也可以通过 `https://overwing.ai/mcp`（Streamable HTTP）直接使用。任何支持远程 MCP URL 的客户端都可以连接：
+同样的 34 个工具也可以通过 `https://overwing.ai/mcp`（Streamable HTTP）直接使用。任何支持远程 MCP URL 的客户端都可以连接：
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp

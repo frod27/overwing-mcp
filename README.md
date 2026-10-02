@@ -31,23 +31,23 @@ Try it without installing anything: paste text into the console at [overwing.ai]
 
 ## Hosted, no install
 
-The same 31 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
+The same 34 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
 ```
 
-No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans` and the three `beacon_` tools. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
+No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans`, `create_account` and the three `beacon_` tools. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
 
 ## Install
 
-It works with no API key: `evaluate` and `atlas_lookup` each run 10 times a day free, and text sent without a key is not stored. For more, get a key at [overwing.ai/login](https://overwing.ai/login), or let your agent sign itself up:
+It works with no API key: `evaluate` and `atlas_lookup` each run 10 times a day free, and text sent without a key is not stored. For more, get a key at [overwing.ai/login](https://overwing.ai/login), or let your agent make its own account with the `create_account` tool. That account has no email: nothing is sent to anyone, and the key is returned once. The same call from a shell:
 
 ```bash
-curl -X POST https://overwing.ai/api/v1/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com","password":"at-least-12-chars"}'
+curl -X POST https://overwing.ai/api/v1/signup
 ```
+
+Put the key in `OVERWING_API_KEY`. An account with no email starts at 50 evaluations a day; proving a domain (`prove_domain`, `verify_domain`) raises it to the normal free limits and makes a lost key recoverable.
 
 **Claude Code**
 
@@ -85,6 +85,7 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 | `evaluate_batch` | Score up to 50 texts in one call, with a summary and per-item verdicts and recommended actions. |
 | `list_rule_sets` · `get_rule_set` · `create_rule_set` | Browse the prebuilt set or define your own rules: yes/no questions, classifications, or scored scales. |
 | `get_evaluation` · `list_evaluations` | Read stored results, filter by verdict or rule set, page with a cursor. |
+| `create_account` · `prove_domain` · `verify_domain` | An account for the agent itself, with no email: `create_account` returns a key and sends nothing to anyone. Proving a domain (a DNS TXT record or a file) takes the place of the email: it raises the limits, opens full Beacon reports, and makes a lost key recoverable. |
 | `atlas_lookup` | Overwing Atlas: say what a User-Agent string claims to be and whether the claim can be trusted (Web Bot Auth, spoofable string, or unattributable). Works with no key, 10 a day; 100 a day with a free key. |
 | `atlas_agents` · `atlas_summary` | Search the registry of AI crawlers, fetchers and browser agents; get traffic shares, sector field-scan headlines, and the agent-spending summary. |
 | `atlas_register_agent` · `atlas_verify_registration` · `atlas_list_registrations` · `atlas_withdraw_registration` | Add an agent you operate to the Atlas registry, free, so a lookup of its User-Agent names you. Register it, publish the value you are given at the operator's domain (a DNS TXT record or a file), then verify. Needs `OVERWING_API_KEY`. |
