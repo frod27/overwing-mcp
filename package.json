@@ -1,6 +1,6 @@
 {
   "name": "overwing-mcp",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Overwing MCP server: guardrails for LLM output. Score any text for safety, quality and compliance and get pass / fail / review verdicts with calibrated confidence, from any MCP-capable agent. Plus Overwing Atlas: identify any User-Agent string against a registry of AI agents, with no key needed to try. Plus Overwing Tower: policy decisions, human review and signed receipts for agents operating legacy systems.",
   "license": "MIT",
   "type": "module",
