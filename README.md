@@ -31,13 +31,13 @@ Try it without installing anything: paste text into the console at [overwing.ai]
 
 ## Hosted, no install
 
-The same 34 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
+The same 39 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
 ```
 
-No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans`, `create_account` and the three `beacon_` tools. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
+No key is needed for `evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans`, `create_account`, the three `beacon_` tools, and `preflight_verdict`, `preflight_report`, `preflight_record` and `preflight_overview`. For the rest, send `Authorization: Bearer ow_live_...` on the connection.
 
 ## Install
 
@@ -75,6 +75,8 @@ For [Overwing Tower](https://overwing.ai/products/tower), set `OVERWING_AGENT_KE
 
 `evaluate`, `atlas_lookup`, `atlas_summary` and `list_plans` work with no key at all.
 
+For [Overwing Preflight](https://overwing.ai/preflight), `preflight_check` needs `OVERWING_API_KEY`; the other `preflight_` tools need no key. No Preflight tool takes a private key, and none should ever be given one.
+
 The text can be in any language. It was tested on 2026-09-29 in Spanish, Portuguese, French, German, Japanese, Simplified Chinese, Korean, Arabic and Hindi: a small test, not a benchmark. Results come back in English.
 
 ## Tools
@@ -90,6 +92,8 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 | `atlas_agents` · `atlas_summary` | Search the registry of AI crawlers, fetchers and browser agents; get traffic shares, sector field-scan headlines, and the agent-spending summary. |
 | `atlas_register_agent` · `atlas_verify_registration` · `atlas_list_registrations` · `atlas_withdraw_registration` | Add an agent you operate to the Atlas registry, free, so a lookup of its User-Agent names you. Register it, publish the value you are given at the operator's domain (a DNS TXT record or a file), then verify. Needs `OVERWING_API_KEY`. |
 | `beacon_start` · `beacon_report` · `beacon_sample` | Overwing Beacon: is a site reachable by agents? Checks robots.txt, llms.txt, the MCP server card, endpoint and Registry listing, the A2A agent card and OpenAPI, and how the home page reads to a model. A check is free: `beacon_start` returns an id and `beacon_report` runs the check and returns the report. With `OVERWING_API_KEY` it is the full report, saved to your dashboard; with no key it is the summary (the score, the three answers and the first fix). `beacon_sample` is a real report in full. |
+| `preflight_check` | Overwing Preflight: should the agent sign this Solana transaction? Give it the unsigned transaction in base64 and a policy: the `wallet` to protect, the most SOL that may leave it (`max_sol_out`, fees included, or `max_sol_out_lamports`), and optionally `max_token_out`, `min_token_in`, `allowed_programs` and `allow_delegation`. It simulates the transaction and answers `allow` or `refuse` with every reason. Sign only on `allow`; a refusal, an error or anything else means do not sign. A verdict is valid for about two minutes. It never takes a private key. One check counts as one evaluation. Needs `OVERWING_API_KEY`. |
+| `preflight_verdict` · `preflight_report` · `preflight_record` · `preflight_overview` | Preflight's public side, with no key: read one published verdict, report the transaction that landed after a verdict (by its signature) to learn whether the verdict held, read the record of every verdict and miss, and read the overview of policy fields, reason codes, limits and prices. |
 | `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower setup, with the organization key: load the starter order-entry workflow, then mint a scoped agent identity. The new agent key is used for the rest of the session. |
 | `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower operations, with the agent key: see which operations you may call and their input schemas, ask how a request would be ruled, submit it (executed, pending human review, or rejected), poll it, undo it. |
 | `tower_get_receipt` · `tower_verify_receipts` | Read a signed receipt, or recompute every hash and signature in the chain. |
@@ -109,6 +113,7 @@ What happens to text you evaluate:
   - pass `store: false` to `evaluate` or `evaluate_batch` to keep no text or context for that call;
   - set `store_inputs: false` on the organization (`PATCH /api/v1/org`, or the dashboard) to keep none at all;
   - set `retention_days` on the organization to delete evaluations after that many days.
+- A Solana transaction you check with `preflight_check` is sent to the Overwing API with its policy, and simulated against a Solana node. What is published is the verdict: its id, decision, reason codes, programs and the transaction's digest. Never the wallet, the amounts or the transaction. No private key is ever sent, and the tool does not accept one.
 - Traffic is encrypted in transit (TLS) and the database is encrypted at rest (AES-256).
 
 Give your agent a restricted key. A key with scope `evaluate` can run checks and read rule sets, and cannot read stored evaluations, change rule sets, manage keys, webhooks or billing, or delete anything:
