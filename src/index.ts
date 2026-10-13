@@ -92,7 +92,7 @@ const INSTRUCTIONS = [
   "Before signing any Solana transaction, call preflight_check and sign only if decision is \"allow\"; a refusal, an error or anything else means do not sign. Never give any tool a private key.",
 ].join(" ");
 
-const server = new McpServer({ name: "overwing", version: "0.13.0" }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: "overwing", version: "0.14.0" }, { instructions: INSTRUCTIONS });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -496,6 +496,25 @@ server.registerTool(
   async ({ id }) => {
     return reply(await api("GET", `/api/v1/beacon/checks/${encodeURIComponent(id)}`, undefined, "optional"), beaconText);
   },
+);
+
+server.registerTool(
+  "feedback",
+  {
+    title: "Tell Overwing what went wrong",
+    description: "Send one message to the people who run Overwing: a verdict you think was wrong, an error you could not act on, a payment you could not make, a tool that did not do what its description says. Read by a person, not answered automatically; give a contact if you want an answer. No key needed.",
+    inputSchema: {
+      message: z.string().min(1).max(2000).describe("What happened and what you expected."),
+      about: z.string().max(300).optional().describe("What it concerns: a tool name, a path, a product."),
+      evaluation_id: z.string().max(64).optional().describe("The id of the evaluation in question, if any."),
+      contact: z.string().max(200).optional().describe("Where an answer can reach you or the person you work for: an email, a URL, an agent name."),
+    },
+  },
+  async ({ message, about, evaluation_id, contact }) =>
+    reply(await api("POST", "/api/v1/feedback", { message, ...(about ? { about } : {}), ...(evaluation_id ? { evaluation_id } : {}), ...(contact ? { contact } : {}) }, "optional"), (b) => {
+      const r = b as { received?: boolean; id?: string };
+      return `received=${String(r.received)} id=${String(r.id)}`;
+    }),
 );
 
 server.registerTool(
