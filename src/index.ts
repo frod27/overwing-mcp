@@ -92,7 +92,7 @@ const INSTRUCTIONS = [
   "Before signing any Solana transaction, call preflight_check and sign only if decision is \"allow\"; a refusal, an error or anything else means do not sign. Never give any tool a private key.",
 ].join(" ");
 
-const server = new McpServer({ name: "overwing", version: "0.14.0" }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: "overwing", version: "0.15.0" }, { instructions: INSTRUCTIONS });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -514,6 +514,25 @@ server.registerTool(
     reply(await api("POST", "/api/v1/feedback", { message, ...(about ? { about } : {}), ...(evaluation_id ? { evaluation_id } : {}), ...(contact ? { contact } : {}) }, "optional"), (b) => {
       const r = b as { received?: boolean; id?: string };
       return `received=${String(r.received)} id=${String(r.id)}`;
+    }),
+);
+
+server.registerTool(
+  "preflight_payment",
+  {
+    title: "Should I sign this x402 payment? (Overwing Preflight)",
+    description: "Call this with the 402 you were given, before signing an x402 payment. It reads the terms (network, asset, amount, payee, timeout, resource) and answers allow, review or refuse with reasons: the terms against your policy, the payee against x402-list's directory (verified delivery, recorded settlements, buyers, shared payout addresses) and the server's own /.well-known/x402 manifest, and the price against what is recorded for that endpoint. Not a simulation and not a guarantee. Sign only on allow; on review, ask the person you work for. No key needed for a few checks a day.",
+    inputSchema: {
+      payment_required: z.string().min(2).max(20000).describe("The PAYMENT-REQUIRED header value of the 402 (base64), or its decoded JSON as a string."),
+      requested_url: z.string().max(2000).optional().describe("The URL you asked for and got the 402 from."),
+      network: z.string().max(80).optional().describe("The CAIP-2 network you would pay on, e.g. eip155:8453."),
+      policy: z.record(z.string(), z.unknown()).optional().describe("Optional: max_per_call_usd (default 0.05), new_payee_max_usd (0.01), allowed_networks, allowed_payees, blocked_payees, allow_testnets, max_price_drift (0.25)."),
+    },
+  },
+  async ({ payment_required, requested_url, network, policy }) =>
+    reply(await api("POST", "/api/v1/preflight/x402", { payment_required, ...(requested_url ? { requested_url } : {}), ...(network ? { network } : {}), ...(policy ? { policy } : {}) }, "optional"), (b) => {
+      const r = b as { decision?: string; reasons?: { code?: string }[]; terms?: { amount_usd?: number | null; pay_to?: string } };
+      return `decision=${String(r.decision)} amount_usd=${String(r.terms?.amount_usd)} pay_to=${String(r.terms?.pay_to)} reasons=${(r.reasons ?? []).map((x) => String(x.code)).join(",") || "none"}`;
     }),
 );
 
