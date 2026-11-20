@@ -71,8 +71,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 셀프 호스팅 배포를 가리키려면 `OVERWING_BASE_URL`을 설정하세요. Node 20 이상이 필요합니다.
 
-[Overwing Tower](https://overwing.ai/products/tower)에서는 `OVERWING_AGENT_KEY=ow_agent_...`를 설정하면 기존 에이전트로서 동작합니다. 설정하지 않으면 `tower_create_agent`가 조직 키로 에이전트 키를 발급하고, 세션 동안 메모리에만 보관합니다.
-
 `evaluate`, `atlas_lookup`, `atlas_summary`, `list_plans`는 키가 전혀 없어도 동작합니다.
 
 입력 텍스트는 어떤 언어든 가능합니다. 2026-09-29에 스페인어, 포르투갈어, 프랑스어, 독일어, 일본어, 중국어 간체, 한국어, 아랍어, 힌디어로 테스트했습니다. 소규모 테스트이며 벤치마크는 아닙니다. 결과는 영어로 반환됩니다.
@@ -87,9 +85,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 | `get_evaluation` · `list_evaluations` | 저장된 결과를 조회합니다. 판정이나 규칙 세트로 필터링하고 커서로 페이지를 넘길 수 있습니다. |
 | `atlas_lookup` | Overwing Atlas: User-Agent 문자열이 무엇이라고 자칭하는지, 그리고 그 주장을 믿을 수 있는지(Web Bot Auth, 위조 가능한 문자열, 또는 귀속 불가)를 알려 줍니다. 키 없이 하루 10회, 무료 키로는 하루 100회까지 사용할 수 있습니다. |
 | `atlas_agents` · `atlas_summary` | AI 크롤러, 페처, 브라우저 에이전트 레지스트리를 검색합니다. 트래픽 점유율, 업종별 현장 스캔의 주요 결과, 에이전트 지출 요약도 받아볼 수 있습니다. |
-| `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower 설정(조직 키 사용): 스타터용 주문 입력 워크플로를 불러온 다음, 범위가 제한된 에이전트 ID를 발급합니다. 새 에이전트 키는 세션의 나머지 동안 사용됩니다. |
-| `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower 운영(에이전트 키 사용): 호출할 수 있는 오퍼레이션과 입력 스키마를 확인하고, 요청이 어떻게 판정될지 물어보고, 요청을 제출하고(실행됨, 사람의 검토 대기, 또는 거부됨), 상태를 폴링하고, 실행을 되돌립니다. |
-| `tower_get_receipt` · `tower_verify_receipts` | 서명된 영수증을 조회하거나, 체인의 모든 해시와 서명을 다시 계산합니다. |
 | `get_usage` · `whoami` · `list_plans` | 오늘의 할당량, 키가 속한 조직, 공개 요금제 목록. |
 
 `overwing://guide` 리소스는 일반 텍스트로 된 전체 API 가이드를 반환합니다.

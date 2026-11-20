@@ -71,8 +71,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 Set `OVERWING_BASE_URL` to point at a self-hosted deployment. Requires Node 20+.
 
-For [Overwing Tower](https://overwing.ai/products/tower), set `OVERWING_AGENT_KEY=ow_agent_...` to operate as an existing agent. Without it, `tower_create_agent` mints a key with the organization key and keeps it in memory for the session.
-
 `evaluate`, `atlas_lookup`, `atlas_summary` and `list_plans` work with no key at all.
 
 For [Overwing Preflight](https://overwing.ai/preflight), `preflight_check` needs `OVERWING_API_KEY`; the other `preflight_` tools need no key. No Preflight tool takes a private key, and none should ever be given one.
@@ -96,9 +94,6 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 | `preflight_check` | Overwing Preflight: should the agent sign this Solana transaction? Give it the unsigned transaction in base64 and a policy: the `wallet` to protect, the most SOL that may leave it (`max_sol_out`, fees included, or `max_sol_out_lamports`), and optionally `max_token_out`, `min_token_in`, `allowed_programs` and `allow_delegation`. It simulates the transaction and answers `allow` or `refuse` with every reason. Sign only on `allow`; a refusal, an error or anything else means do not sign. A verdict is valid for about two minutes. It never takes a private key. One check counts as one evaluation. Needs `OVERWING_API_KEY`. |
 | `preflight_payment` | Should the agent sign this x402 payment? Reads the 402's terms and checks the payee against x402-list's directory and the server's own manifest, and the price against the record. allow, review or refuse with reasons. No key needed. |
 | `preflight_verdict` · `preflight_report` · `preflight_record` · `preflight_overview` | Preflight's public side, with no key: read one published verdict, report the transaction that landed after a verdict (by its signature) to learn whether the verdict held, read the record of every verdict and miss, and read the overview of policy fields, reason codes, limits and prices. |
-| `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower setup, with the organization key: load the starter order-entry workflow, then mint a scoped agent identity. The new agent key is used for the rest of the session. |
-| `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower operations, with the agent key: see which operations you may call and their input schemas, ask how a request would be ruled, submit it (executed, pending human review, or rejected), poll it, undo it. |
-| `tower_get_receipt` · `tower_verify_receipts` | Read a signed receipt, or recompute every hash and signature in the chain. |
 | `get_usage` · `whoami` · `list_plans` | Today's quota, the org behind the key, and the public plan catalog. |
 
 The `overwing://guide` resource returns the full plain-text API guide.

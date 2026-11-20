@@ -71,8 +71,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 セルフホスト環境を参照する場合は `OVERWING_BASE_URL` を設定します。Node 20 以上が必要です。
 
-[Overwing Tower](https://overwing.ai/products/tower) では、`OVERWING_AGENT_KEY=ow_agent_...` を設定すると既存のエージェントとして操作できます。設定していない場合は、`tower_create_agent` が組織キーを使ってエージェントキーを発行し、セッションの間だけメモリ上に保持します。
-
 `evaluate`、`atlas_lookup`、`atlas_summary`、`list_plans` はキーなしで利用できます。
 
 入力テキストは何語でもかまいません。2026-09-29 にスペイン語、ポルトガル語、フランス語、ドイツ語、日本語、簡体字中国語、韓国語、アラビア語、ヒンディー語でテストしました。小規模なテストであり、ベンチマークではありません。結果は英語で返ります。
@@ -87,9 +85,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 | `get_evaluation` · `list_evaluations` | 保存済みの結果を取得します。判定やルールセットで絞り込み、カーソルでページ送りできます。 |
 | `atlas_lookup` | Overwing Atlas：User-Agent 文字列が何を名乗っているか、その主張を信頼できるか（Web Bot Auth、偽装可能な文字列、または帰属不明）を返します。キーなしで 1 日 10 回、無料キーでは 1 日 100 回まで利用できます。 |
 | `atlas_agents` · `atlas_summary` | AI クローラー、フェッチャー、ブラウザエージェントのレジストリを検索します。トラフィックシェア、業種別フィールドスキャンの要点、エージェントの支出に関するサマリーも取得できます。 |
-| `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower のセットアップ（組織キーを使用）：スターター用の受注入力ワークフローを読み込み、スコープを限定したエージェント ID を発行します。発行されたエージェントキーは、以降のセッションで使われます。 |
-| `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower の操作（エージェントキーを使用）：呼び出せるオペレーションとその入力スキーマを確認し、リクエストがどう裁定されるかを問い合わせ、送信し（実行済み、人によるレビュー待ち、または却下）、状態をポーリングし、取り消します。 |
-| `tower_get_receipt` · `tower_verify_receipts` | 署名付きレシートを取得するか、チェーン内のすべてのハッシュと署名を再計算します。 |
 | `get_usage` · `whoami` · `list_plans` | 本日のクォータ、キーに紐づく組織、公開されているプラン一覧。 |
 
 `overwing://guide` リソースは、プレーンテキストの API ガイド全文を返します。

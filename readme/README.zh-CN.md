@@ -71,8 +71,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 
 如需指向自托管部署，请设置 `OVERWING_BASE_URL`。需要 Node 20 及以上版本。
 
-使用 [Overwing Tower](https://overwing.ai/products/tower) 时，设置 `OVERWING_AGENT_KEY=ow_agent_...` 即可以某个已有 agent 的身份进行操作。如果没有设置，`tower_create_agent` 会用组织 key 签发一个 agent key，并在本次会话期间保存在内存中。
-
 `evaluate`、`atlas_lookup`、`atlas_summary` 和 `list_plans` 完全不需要 key。
 
 输入文本可以是任何语言。2026-09-29 已在西班牙语、葡萄牙语、法语、德语、日语、简体中文、韩语、阿拉伯语和印地语上做过测试：这只是小规模测试，并非基准测试。返回结果为英文。
@@ -87,9 +85,6 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 | `get_evaluation` · `list_evaluations` | 读取已存储的结果，可按判定或规则集筛选，用游标（cursor）翻页。 |
 | `atlas_lookup` | Overwing Atlas：说明一个 User-Agent 字符串自称是什么，以及这一声明是否可信（Web Bot Auth、可伪造的字符串，或无法归属）。无需 key，每天 10 次；使用免费 key 每天 100 次。 |
 | `atlas_agents` · `atlas_summary` | 搜索 AI 爬虫、抓取器和浏览器智能体的注册表；获取流量占比、行业实地扫描的要点，以及智能体消费情况摘要。 |
-| `tower_load_template` · `tower_create_agent` · `tower_list_agents` · `tower_revoke_agent` | Overwing Tower 的初始化，使用组织 key：加载入门用的订单录入工作流，然后签发一个限定权限范围的 agent 身份。新的 agent key 会在本次会话的后续调用中使用。 |
-| `tower_capabilities` · `tower_decide` · `tower_submit_action` · `tower_get_action` · `tower_compensate` | Overwing Tower 的日常操作，使用 agent key：查看自己可以调用哪些操作及其输入 schema，询问某个请求会被如何裁定，提交请求（已执行、等待人工审核或被拒绝），轮询状态，撤销操作。 |
-| `tower_get_receipt` · `tower_verify_receipts` | 读取一份已签名的回执，或重新计算链上的每一个哈希和签名。 |
 | `get_usage` · `whoami` · `list_plans` | 今日配额、key 所属的组织，以及公开的套餐目录。 |
 
 `overwing://guide` 资源会返回完整的纯文本 API 指南。

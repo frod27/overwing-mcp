@@ -21,14 +21,7 @@
       "environmentVariables": [
         {
           "name": "OVERWING_API_KEY",
-          "description": "Overwing organization key (ow_live_...). Optional: evaluate and atlas_lookup work without it, 10 a day each. Needed for higher limits, rule sets and Tower setup. Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
-          "isRequired": false,
-          "isSecret": true,
-          "format": "string"
-        },
-        {
-          "name": "OVERWING_AGENT_KEY",
-          "description": "Optional Overwing Tower agent key (ow_agent_...). Without it, the tower_create_agent tool mints one for the session",
+          "description": "Overwing organization key (ow_live_...). Optional: evaluate and atlas_lookup work without it, 10 a day each. Needed for higher limits and rule sets. Get one at https://overwing.ai/login or POST https://overwing.ai/api/v1/signup",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
