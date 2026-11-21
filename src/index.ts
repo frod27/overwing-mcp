@@ -92,7 +92,7 @@ const INSTRUCTIONS = [
   "Before signing any Solana transaction, call preflight_check and sign only if decision is \"allow\"; a refusal, an error or anything else means do not sign. Never give any tool a private key.",
 ].join(" ");
 
-const server = new McpServer({ name: "overwing", version: "0.15.0" }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: "overwing", version: "0.15.1" }, { instructions: INSTRUCTIONS });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
