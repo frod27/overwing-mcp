@@ -31,7 +31,7 @@
 
 ## ホスト版（インストール不要）
 
-同じ 39 個のツールを `https://overwing.ai/mcp`（Streamable HTTP）でも提供しています。リモート MCP の URL を指定できるクライアントなら、そのまま接続できます。
+同じ 45 個のツールを `https://overwing.ai/mcp`（Streamable HTTP）でも提供しています。リモート MCP の URL を指定できるクライアントなら、そのまま接続できます。
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
@@ -85,6 +85,8 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 | `get_evaluation` · `list_evaluations` | 保存済みの結果を取得します。判定やルールセットで絞り込み、カーソルでページ送りできます。 |
 | `atlas_lookup` | Overwing Atlas：User-Agent 文字列が何を名乗っているか、その主張を信頼できるか（Web Bot Auth、偽装可能な文字列、または帰属不明）を返します。キーなしで 1 日 10 回、無料キーでは 1 日 100 回まで利用できます。 |
 | `atlas_agents` · `atlas_summary` | AI クローラー、フェッチャー、ブラウザエージェントのレジストリを検索します。トラフィックシェア、業種別フィールドスキャンの要点、エージェントの支出に関するサマリーも取得できます。 |
+| `radar_status` · `radar_list_incidents` · `radar_get_incident` | Overwing Radar：共有ストア（バケット、キャッシュ、キュー、シークレットストア）を監視し、複数のエージェントが連携して動いている兆候や、盗まれた 1 つのログインが機械のように振る舞っている兆候を検出します。`radar_status` は、今月送信したイベント数と上限、監視が有効かどうか、料金を返します。`radar_list_incidents` はインシデントを最近動きのあった順に一覧します（`status` は open または closed、`limit` は最大 100）。`radar_get_incident` は 1 件のインシデントの全体を返します。証拠、タイムライン（誰がいつどのエントリに触れたか。内容は含みません）、推奨アクション、そしてお客様側のレスポンダーが実施したと報告した内容です。Radar は推奨するだけで、お客様のシステムには何も変更を加えません。`OVERWING_API_KEY` が必要です。 |
+| `radar_mint_decoy` | 監視しているストア用に Radar のデコイ（おとり）を発行します。`kind` が `key` の場合はデコイキーを発行します。モデルゲートウェイのアドレスとキーで、本物のキーを保管している場所（env ファイル、CI 変数、シークレットのメモ）に置いておきます。このキーを使ったリクエストが最初に届いた時点で、重大（critical）インシデントが開かれます。そのほかの種類（`notes`、`credentials`、`export`、`config`）は、監視対象のサーフェスに書き込むエントリを発行します。その後に読み取りがあると、インシデントが開かれます。内容はレスポンスに 1 回だけ表示され、保存されません。設置する担当者またはシステムにそのまま渡してください。`OVERWING_API_KEY` が必要です。 |
 | `get_usage` · `whoami` · `list_plans` | 本日のクォータ、キーに紐づく組織、公開されているプラン一覧。 |
 
 `overwing://guide` リソースは、プレーンテキストの API ガイド全文を返します。

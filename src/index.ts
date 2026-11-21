@@ -6,6 +6,7 @@
  *   OVERWING_API_KEY    optional organization key, ow_live_...  (higher limits, rule sets, Tower setup)
  *                       Without it, evaluate and atlas_lookup use the free allowance: 10 a day each.
  *                       preflight_check needs it; the other preflight_ tools do not.
+ *                       The radar_ tools all need it.
  *   OVERWING_AGENT_KEY  optional agent key, ow_agent_... (Tower operations). Without it,
  *                       tower_create_agent mints one and this process keeps it in memory.
  *   OVERWING_BASE_URL   optional, defaults to https://overwing.ai
@@ -92,7 +93,7 @@ const INSTRUCTIONS = [
   "Before signing any Solana transaction, call preflight_check and sign only if decision is \"allow\"; a refusal, an error or anything else means do not sign. Never give any tool a private key.",
 ].join(" ");
 
-const server = new McpServer({ name: "overwing", version: "0.15.1" }, { instructions: INSTRUCTIONS });
+const server = new McpServer({ name: "overwing", version: "0.16.0" }, { instructions: INSTRUCTIONS });
 
 const ruleSchema = z.object({
   name: z.string().max(100),
@@ -544,6 +545,79 @@ server.registerTool(
     inputSchema: {},
   },
   async () => reply(await api("GET", "/api/v1/beacon/sample", undefined, false), beaconText),
+);
+
+// ---------------------------------------------------------------------------
+// Overwing Radar: agents acting together on shared stores, and one stolen login
+// behaving like a machine. Every tool carries the organization key. Radar
+// recommends; it changes nothing on the customer's systems.
+// ---------------------------------------------------------------------------
+
+type RadarIncident = { id?: string; severity?: string; status?: string; title?: string; actors?: unknown[]; evidence?: unknown[]; responses?: unknown[] };
+
+server.registerTool(
+  "radar_status",
+  {
+    title: "Radar status (Overwing Radar)",
+    description: "Overwing Radar watches shared stores (buckets, caches, queues, secret stores) for agents acting together and for one stolen login behaving like a machine. This returns the account's Radar status: events sent this month against the allowance, whether monitoring is active, and prices. Needs OVERWING_API_KEY.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  },
+  async () => reply(await api("GET", "/api/v1/swarm")),
+);
+
+server.registerTool(
+  "radar_list_incidents",
+  {
+    title: "List Radar incidents (Overwing Radar)",
+    description: "Radar's incidents, the most recently active first. One incident is one operation, not one alert per event: its severity, the detectors that agree (decoy_credential, decoy_touch, sweep, convergence, relay_chain, cold_start_cluster), the surfaces and the actors. Radar recommends and changes nothing. Needs OVERWING_API_KEY.",
+    inputSchema: {
+      status: z.enum(["open", "closed"]).optional(),
+      limit: z.number().int().min(1).max(100).optional(),
+    },
+    annotations: { readOnlyHint: true },
+  },
+  async ({ status, limit }) => {
+    const q = new URLSearchParams();
+    if (status) q.set("status", status);
+    if (limit) q.set("limit", String(limit));
+    const qs = q.toString();
+    return reply(await api("GET", `/api/v1/swarm/incidents${qs ? `?${qs}` : ""}`), (b) => {
+      const rows = (b as { incidents?: RadarIncident[] }).incidents ?? [];
+      return `${rows.length} incident(s): ${rows.slice(0, 10).map((i) => `${i.id} ${i.severity} ${i.status} "${i.title}"`).join("; ")}`;
+    });
+  },
+);
+
+server.registerTool(
+  "radar_get_incident",
+  {
+    title: "Read a Radar incident (Overwing Radar)",
+    description: "One Radar incident in full: the evidence each detector saw, a timeline of the events it names (who touched which entry, when; never contents), the recommended actions with the identities or addresses they are about, and what the customer's own responder reported doing. Needs OVERWING_API_KEY.",
+    inputSchema: { id: z.string().regex(/^swi_[A-Za-z0-9_-]{20}$/).describe("The incident id from radar_list_incidents") },
+    annotations: { readOnlyHint: true },
+  },
+  async ({ id }) =>
+    reply(await api("GET", `/api/v1/swarm/incidents/${encodeURIComponent(id)}`), (b) => {
+      const r = b as RadarIncident;
+      return `${r.id} ${r.severity} ${r.status} "${r.title}" actors: ${(r.actors ?? []).length} evidence: ${(r.evidence ?? []).length} responses: ${(r.responses ?? []).length}`;
+    }),
+);
+
+server.registerTool(
+  "radar_mint_decoy",
+  {
+    title: "Mint a Radar decoy or decoy key (Overwing Radar)",
+    description: "Mint a decoy for a store this account watches. kind \"key\" mints a decoy key: a model gateway address and key to keep where real keys are kept (an env file, a CI variable, a secrets note). Nothing there needs instrumenting; the first request that carries the key opens a critical incident naming the place and the address it came from. The other kinds (notes, credentials, export, config) mint an entry to write to a watched surface; any later read of it opens an incident. The content is in the answer once and is never stored: hand it to the person or system that will plant it. Needs OVERWING_API_KEY.",
+    inputSchema: {
+      surface_id: z.string().min(1).max(200).describe("The place the decoy will be kept, by your own name for it"),
+      kind: z.enum(["key", "notes", "credentials", "export", "config"]).optional(),
+      label: z.string().max(200).optional(),
+    },
+    annotations: { readOnlyHint: false },
+  },
+  // No summary: the answer's `content` is shown once, so the whole answer is the text.
+  async ({ surface_id, kind, label }) => reply(await api("POST", "/api/v1/swarm/decoys", { surface_id, ...(kind ? { kind } : {}), ...(label !== undefined ? { label } : {}) })),
 );
 
 // ---------------------------------------------------------------------------

@@ -31,7 +31,7 @@
 
 ## 托管版，无需安装
 
-同样的 39 个工具也可以通过 `https://overwing.ai/mcp`（Streamable HTTP）直接使用。任何支持远程 MCP URL 的客户端都可以连接：
+同样的 45 个工具也可以通过 `https://overwing.ai/mcp`（Streamable HTTP）直接使用。任何支持远程 MCP URL 的客户端都可以连接：
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
@@ -85,6 +85,8 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 | `get_evaluation` · `list_evaluations` | 读取已存储的结果，可按判定或规则集筛选，用游标（cursor）翻页。 |
 | `atlas_lookup` | Overwing Atlas：说明一个 User-Agent 字符串自称是什么，以及这一声明是否可信（Web Bot Auth、可伪造的字符串，或无法归属）。无需 key，每天 10 次；使用免费 key 每天 100 次。 |
 | `atlas_agents` · `atlas_summary` | 搜索 AI 爬虫、抓取器和浏览器智能体的注册表；获取流量占比、行业实地扫描的要点，以及智能体消费情况摘要。 |
+| `radar_status` · `radar_list_incidents` · `radar_get_incident` | Overwing Radar：监视共享存储（存储桶、缓存、队列、密钥库），发现多个智能体协同行动，以及某个被盗的登录身份表现得像机器的情况。`radar_status` 返回本月已发送的事件（event）数与额度、监控是否已开启，以及价格。`radar_list_incidents` 列出安全事件（incident），最近活跃的排在前面；可按 `status`（open 或 closed）筛选，`limit` 最大为 100。`radar_get_incident` 返回一条安全事件的完整内容：证据、时间线（谁在何时触碰了哪个条目，绝不包含内容）、建议的处置动作，以及你自己的响应程序报告已执行的操作。Radar 只给出建议，不会更改你系统上的任何东西。需要 `OVERWING_API_KEY`。 |
+| `radar_mint_decoy` | 为你监视的存储生成一个 Radar 诱饵（decoy）。`kind` 为 `key` 时生成诱饵密钥：一个模型网关地址和 key，放在存放真实密钥的地方（env 文件、CI 变量、密钥备忘）。第一个携带该 key 的请求会触发一条严重（critical）级别的安全事件。其他类型（`notes`、`credentials`、`export`、`config`）生成一个条目，用来写入被监视的位置（surface）；之后对它的任何读取都会触发安全事件。内容只在返回结果中显示一次，不会被存储：请直接交给负责放置它的人或系统。需要 `OVERWING_API_KEY`。 |
 | `get_usage` · `whoami` · `list_plans` | 今日配额、key 所属的组织，以及公开的套餐目录。 |
 
 `overwing://guide` 资源会返回完整的纯文本 API 指南。

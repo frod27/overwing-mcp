@@ -72,3 +72,8 @@ The ja and ko descriptions run over 500 because they carry a lot of ASCII (tool 
 ## Changes made after the first draft (2026-09-30)
 - English README and all three translations: dropped "compliance" from the header (it could read as a regulatory claim), said "usually" before "under 500 ms", named both prebuilt rule sets, and added the any-language note.
 - Korean tagline and description: 민감정보 replaced with 기밀 정보 where it refers to passwords and keys, because 민감정보 has a defined meaning in Korean privacy law. It stays in the keywords as a search term.
+
+## Radar rows (2026-11-21, 0.16.0)
+- The two Radar rows in the tools table of each translated README (`radar_status` · `radar_list_incidents` · `radar_get_incident`, and `radar_mint_decoy`) were translated by a model (Claude) from the English README and are unreviewed, like the rest.
+- Terms to check. zh-CN: 安全事件 for incident (事件 alone is kept for event), 诱饵 for decoy, 诱饵密钥 for decoy key, 响应程序 for responder. ja: インシデント, デコイ（おとり）, デコイキー, レスポンダー, サーフェス. ko: 인시던트, 디코이(미끼), 디코이 키, 대응 프로그램 for responder, 서피스.
+- The tool count was set to 45 in all four READMEs and in the four `listings.json` descriptions (they said 41, 39 and 27). Radar is not described in `listings.json`: the descriptions are at their length limits.

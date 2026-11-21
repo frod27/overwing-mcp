@@ -31,7 +31,7 @@ Try it without installing anything: paste text into the console at [overwing.ai]
 
 ## Hosted, no install
 
-The same 41 tools are served at `https://overwing.ai/mcp` (Streamable HTTP). Point any client that takes a remote MCP URL at it:
+There is also a hosted server at `https://overwing.ai/mcp` (Streamable HTTP), with nothing to install. Point any client that takes a remote MCP URL at it:
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
@@ -75,6 +75,8 @@ Set `OVERWING_BASE_URL` to point at a self-hosted deployment. Requires Node 20+.
 
 For [Overwing Preflight](https://overwing.ai/preflight), `preflight_check` needs `OVERWING_API_KEY`; the other `preflight_` tools need no key. No Preflight tool takes a private key, and none should ever be given one.
 
+For [Overwing Radar](https://overwing.ai/radar), all four `radar_` tools need `OVERWING_API_KEY`. Radar recommends and changes nothing on your systems; the tools read its status and incidents and mint decoys.
+
 The text can be in any language. It was tested on 2026-09-29 in Spanish, Portuguese, French, German, Japanese, Simplified Chinese, Korean, Arabic and Hindi: a small test, not a benchmark. Results come back in English.
 
 ## Tools
@@ -94,6 +96,8 @@ The text can be in any language. It was tested on 2026-09-29 in Spanish, Portugu
 | `preflight_check` | Overwing Preflight: should the agent sign this Solana transaction? Give it the unsigned transaction in base64 and a policy: the `wallet` to protect, the most SOL that may leave it (`max_sol_out`, fees included, or `max_sol_out_lamports`), and optionally `max_token_out`, `min_token_in`, `allowed_programs` and `allow_delegation`. It simulates the transaction and answers `allow` or `refuse` with every reason. Sign only on `allow`; a refusal, an error or anything else means do not sign. A verdict is valid for about two minutes. It never takes a private key. One check counts as one evaluation. Needs `OVERWING_API_KEY`. |
 | `preflight_payment` | Should the agent sign this x402 payment? Reads the 402's terms and checks the payee against x402-list's directory and the server's own manifest, and the price against the record. allow, review or refuse with reasons. No key needed. |
 | `preflight_verdict` · `preflight_report` · `preflight_record` · `preflight_overview` | Preflight's public side, with no key: read one published verdict, report the transaction that landed after a verdict (by its signature) to learn whether the verdict held, read the record of every verdict and miss, and read the overview of policy fields, reason codes, limits and prices. |
+| `radar_status` · `radar_list_incidents` · `radar_get_incident` | Overwing Radar: watches shared stores (buckets, caches, queues, secret stores) for agents acting together and for one stolen login behaving like a machine. `radar_status` returns the events sent this month against the allowance, whether monitoring is active, and prices. `radar_list_incidents` lists incidents, the most recently active first; filter by `status` (open or closed) and set a `limit` up to 100. `radar_get_incident` returns one incident in full: the evidence, a timeline of who touched which entry and when (never contents), the recommended actions, and what your own responder reported doing. Radar recommends; it changes nothing on your systems. Needs `OVERWING_API_KEY`. |
+| `radar_mint_decoy` | Mint a Radar decoy for a store you watch. `kind: "key"` mints a decoy key: a model gateway address and key to keep where real keys are kept (an env file, a CI variable, a secrets note). The first request that carries it opens a critical incident. The other kinds (`notes`, `credentials`, `export`, `config`) mint an entry to write to a watched surface; any later read of it opens an incident. The content is shown once, in the answer, and is never stored: hand it to the person or system that will plant it. Needs `OVERWING_API_KEY`. |
 | `get_usage` · `whoami` · `list_plans` | Today's quota, the org behind the key, and the public plan catalog. |
 
 The `overwing://guide` resource returns the full plain-text API guide.

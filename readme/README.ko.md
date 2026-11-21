@@ -31,7 +31,7 @@
 
 ## 호스팅 버전(설치 불필요)
 
-같은 39개 도구를 `https://overwing.ai/mcp`(Streamable HTTP)에서도 제공합니다. 원격 MCP URL을 지정할 수 있는 클라이언트라면 바로 연결할 수 있습니다.
+같은 45개 도구를 `https://overwing.ai/mcp`(Streamable HTTP)에서도 제공합니다. 원격 MCP URL을 지정할 수 있는 클라이언트라면 바로 연결할 수 있습니다.
 
 ```bash
 claude mcp add --transport http overwing https://overwing.ai/mcp
@@ -85,6 +85,8 @@ claude mcp add overwing -e OVERWING_API_KEY=ow_live_... -- npx -y overwing-mcp
 | `get_evaluation` · `list_evaluations` | 저장된 결과를 조회합니다. 판정이나 규칙 세트로 필터링하고 커서로 페이지를 넘길 수 있습니다. |
 | `atlas_lookup` | Overwing Atlas: User-Agent 문자열이 무엇이라고 자칭하는지, 그리고 그 주장을 믿을 수 있는지(Web Bot Auth, 위조 가능한 문자열, 또는 귀속 불가)를 알려 줍니다. 키 없이 하루 10회, 무료 키로는 하루 100회까지 사용할 수 있습니다. |
 | `atlas_agents` · `atlas_summary` | AI 크롤러, 페처, 브라우저 에이전트 레지스트리를 검색합니다. 트래픽 점유율, 업종별 현장 스캔의 주요 결과, 에이전트 지출 요약도 받아볼 수 있습니다. |
+| `radar_status` · `radar_list_incidents` · `radar_get_incident` | Overwing Radar: 공유 저장소(버킷, 캐시, 큐, 시크릿 저장소)를 지켜보며, 여러 에이전트가 함께 움직이는 정황과 탈취된 로그인 하나가 기계처럼 행동하는 정황을 찾아냅니다. `radar_status`는 이번 달에 보낸 이벤트 수와 허용량, 모니터링 활성화 여부, 가격을 반환합니다. `radar_list_incidents`는 인시던트를 최근에 활동이 있었던 순서로 나열합니다(`status`는 open 또는 closed, `limit`는 최대 100). `radar_get_incident`는 인시던트 하나의 전체 내용을 반환합니다. 증거, 타임라인(누가 언제 어떤 항목을 건드렸는지. 내용은 포함하지 않음), 권장 조치, 그리고 고객 측 대응 프로그램이 수행했다고 보고한 내용입니다. Radar는 권장만 하며, 고객 시스템의 어떤 것도 변경하지 않습니다. `OVERWING_API_KEY`가 필요합니다. |
+| `radar_mint_decoy` | 감시 중인 저장소에 둘 Radar 디코이(미끼)를 발급합니다. `kind`가 `key`이면 디코이 키를 발급합니다. 모델 게이트웨이 주소와 키로, 실제 키를 보관하는 곳(env 파일, CI 변수, 시크릿 메모)에 두면 됩니다. 이 키를 실은 첫 요청이 들어오면 심각(critical) 인시던트가 열립니다. 나머지 종류(`notes`, `credentials`, `export`, `config`)는 감시 대상 서피스에 써 넣을 항목을 발급하며, 이후 누군가 그것을 읽으면 인시던트가 열립니다. 내용은 응답에 한 번만 표시되고 저장되지 않습니다. 심어 둘 사람이나 시스템에 바로 전달하세요. `OVERWING_API_KEY`가 필요합니다. |
 | `get_usage` · `whoami` · `list_plans` | 오늘의 할당량, 키가 속한 조직, 공개 요금제 목록. |
 
 `overwing://guide` 리소스는 일반 텍스트로 된 전체 API 가이드를 반환합니다.
